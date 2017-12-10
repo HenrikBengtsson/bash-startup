@@ -1,0 +1,251 @@
+#!/usr/bin/env bash
+### Bash Startup Utility Functions
+###
+### This script defines utility functions for the Bash startup sequence,
+### specificially, source_d() sources all _executable_ scripts in a set
+### of folders (recursively) conditionally on pathname-specific tags.
+### This script is preferrably sourced from ~/.bashrc or similar.
+###
+### USAGE:
+### . /path/to/bash-startup [options] folder folder2 ...
+### . /path/to/bash-startup; bash_startup [options] folder folder2 ...
+### . /path/to/bash-startup; source_d folder folder2 ...
+###
+### Options:
+###  --help        Display this help
+###  --version     Display version
+###
+###  --dryrun      Dry run with output without sourcing anything
+###  --debug       Display debug messages
+###
+###
+### EXAMPLE:
+### The easiest way is to source the bash-startup script with a set of folders:
+###
+###   . /path/to/bash-startup ~/.bashrc.d
+###   . /path/to/bash-startup --debug ~/.bashrc.d
+###   STARTUP_DEBUG=true . /path/to/bash-startup ~/.bashrc.d
+###
+### The bash-startup script can also be used to import a set of functions
+### (bash_startup and source_d) and then call those afterward, e.g.
+###
+###   . /path/to/bash-startup
+###   bash_startup /etc/bashrc
+###   bash_startup --debug ~/.bashrc.d
+###
+### or
+###
+###   . /path/to/bash-startup
+###   source_d /etc/bashrc
+###   STARTUP_DEBUG=true source_d ~/.bashrc.d
+###
+###
+### FILE AND DIRECTORY NAME FILTERS:
+### If a directory or file name contains one or more <key>=<value> tags, it
+### will be included if they all meet the test:
+###
+###  - interactive=TRUE   included in interactive mode (PS1 is set)
+###  - HOSTNAME=<value>   included if HOSTNAME equals <value>
+### 
+### DEBUGGING AND TESTING:
+### To debug what files are sourced and how long each of them takes set
+### STARTUP_DEBUG=true.  To perform a dry run set STARTUP_DRYRUN=true.
+### If calling bash_startup(), these may be setup (temporarily) by using
+### options --debug and --dryrun, respectively.
+###
+### Version: 0.1.0-9000
+### Copyright: Henrik Bengtsson (2017)
+### License: GPL (>= 2.1)
+### Source: https://github.com/HenrikBengtsson/bash-startup
+
+
+## ---------------------------------------------------------------------------
+##  Local functions
+## ---------------------------------------------------------------------------
+## Usage: msg_echo <msg>
+function msg_echo() {
+    >&2 echo "$*"
+}
+
+## Usage: debug_echo <msg>
+function debug_echo() {
+    tput setaf 8 2> /dev/null ## gray
+    msg_echo "$*"
+    tput sgr0 2> /dev/null    ## reset
+}
+
+## Usage: warn_echo <msg>
+function warn_echo() {
+    tput setaf 3 2> /dev/null ## red
+    msg_echo "WARNING: $*"
+    tput sgr0 2> /dev/null    ## reset
+}
+
+## Usage: error_echo <msg>
+function error_echo() {
+    tput setaf 1 2> /dev/null ## red
+    msg_echo "ERROR: $*"
+    tput sgr0 2> /dev/null    ## reset
+}
+
+## Display the help
+function startup_help() {
+    local res=$(grep -E "^###([ ].*|)$" $1 | cut -b 5-)
+    printf '%s\n' "${res[@]}"
+}
+
+## Display the version
+function startup_version() {
+    grep -E "^###[ ]+Version: " $1 | sed -E 's/.*Version:[ ]+//g' | sed 's/ //g'
+}
+
+## Keeps track of processing times
+STARTUP_START_TIME=$(echo $(($(date +%s%N)/1000000)))
+function startup_duration() {
+    local d=$(($(echo $(($(date +%s%N)/1000000))) - $STARTUP_START_TIME))
+    d=$(echo 000$d | sed -E 's/([0-9]{3})$/.\1/' | sed -E 's/^0*([0-9])/\1/')
+    echo $d
+}
+
+function startup_filter_by_envvar() {
+    ## Drop all string with <key>=<value> that does not match <key>=${key} or
+    ## <key>=${key}%OR%<other> etc.
+    local key=$1
+    eval value=\$$key
+    shift
+
+    ## This requires negative-lookahead regular expression, which in turn requires
+    ## an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
+    local neq='!'
+    local pattern="${key}=(?${neq}(${value}|[^,=]+%OR%${value}))"
+#    debug_echo "${prefix}$(startup_duration)s: - startup_filter_by_envvar: '$pattern'"
+    printf "%s\n" $* | grep --perl-regexp -v "$pattern"
+}
+
+
+## Usage: source_d <path>
+function source_d() {
+    local source_d_path=$1
+
+    if [[ $# -eq 0 ]]; then
+        msg_echo "source_d: path not specified"
+        return 1
+    elif [[ ! -d "${source_d_path}" ]]; then
+	if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
+            error_echo "source_d: no such path: ${source_d_path}"
+	elif [[ ${STARTUP_ON_ERROR} == warn ]]; then
+            warn_echo "source_d: no such path: ${source_d_path}"
+        fi
+        return 1
+    fi
+
+    local debug=false
+    if [[ -n "${STARTUP_DEBUG}" ]]; then debug=true; fi
+    
+    local prefix=
+    local dryrun=false
+    if [[ -n "${STARTUP_DRYRUN}" ]]; then
+	prefix="[DRYRUN] "
+	dryrun=true
+    fi
+    
+    $debug && debug_echo "$(startup_duration)s: Sourcing ${source_d_path}/ ..."
+
+    ## Find all files
+    local source_d_files=$(find -L "${source_d_path}" -executable -type f ! -name '*~' 2> /dev/null | LC_ALL=C sort)
+
+    ## Filter: Not running in interactive mode?
+    if [[ -z "$PS1" ]]; then
+        ## Drop pathnames with interactive=TRUE
+        source_d_files=$(printf "%s\n" ${source_d_files[@]} | grep -vF "interactive=TRUE")
+    fi
+
+    ## Filter: Filter based on HOSTNAME=<value>?
+    if [[ -n "${HOSTTYPE}" ]]; then
+        source_d_files=$(startup_filter_by_envvar HOSTNAME "${source_d_files[@]}")
+    fi
+
+    ## Source remaining files
+    local ff=
+    for ff in ${source_d_files}; do
+       ( $debug || $dryrun ) && debug_echo "$(startup_duration)s: ${prefix} - ${ff}"
+	$dryrun && continue
+        source "${ff}"
+    done
+
+    $debug && debug_echo "$(startup_duration)s: Sourcing ${source_d_path}/ ... done"
+} ## source_d()
+
+
+function bash_startup() {
+    ## Record startup env vars
+    local org_debug=${STARTUP_DEBUG}
+    local org_dryrun=${STARTUP_DRYRUN}
+    local org_onerror=${STARTUP_ON_ERROR}
+
+    local cmdargs=$*
+    local action=
+    local debug=false
+    local dirs=
+   
+    # Parse command-line options
+    while [[ $# > 0 ]]; do
+        if [[ "$1" == "--help" ]]; then
+            action=help
+        elif [[ "$1" == "--version" ]]; then
+            action=version
+        elif [[ "$1" == "--debug" ]]; then
+            STARTUP_DEBUG=true
+	    debug=true
+        elif [[ "$1" == "--dryrun" ]]; then
+            STARTUP_DRYRUN=true
+        elif [[ $1 == "--strict" ]]; then
+	    STARTUP_ON_ERROR=error
+        elif [[ $1 == "--warn" ]]; then
+	    STARTUP_ON_ERROR=warn
+	else
+	    dirs="$dirs $1"
+	fi
+	shift
+    done
+    
+    $debug && debug_echo "${prefix}$(startup_duration)s: bash_startup() ..."
+    $debug && debug_echo "${prefix}$(startup_duration)s: BASH_SOURCE: $BASH_SOURCE"
+    $debug && debug_echo "${prefix}$(startup_duration)s: Command-line arguments: $cmdargs"
+    $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
+    $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
+    $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
+    $debug && debug_echo "${prefix}$(startup_duration)s: action: $action"
+
+    ## Default to display help, unless folders are specified
+    if [[ -z $action ]]; then return; fi
+    
+    if [[ $action == help ]]; then
+        startup_help $BASH_SOURCE
+    elif [[ $action == version ]]; then
+        startup_version $BASH_SOURCE
+    else
+        $debug && debug_echo "${prefix}$(startup_duration)s: Processing ${#dirs[@]} folders:$dirs"   
+        for dir in $dirs; do
+           source_d $dir
+        done
+    fi
+
+    ## Reset orginal startup env vars
+    STARTUP_DEBUG=$org_debug
+    STARTUP_DRYRUN=$org_dryrun
+    STARTUP_ON_ERROR=$org_onerror
+    
+    $debug && debug_echo "${prefix}$(startup_duration)s: bash_startup() ... done"
+}
+
+## Make sure script is source:ed
+if [[ $0 == $BASH_SOURCE ]]; then
+    error_echo "This script ($0) should not be called directly, but rather be source:d (or .:ed), e.g. 'source $0' or '. $0'"
+    exit 1
+fi
+
+## Process command-line arguments, if any
+if [[ $# -gt 0 ]]; then
+    bash_startup $*
+fi

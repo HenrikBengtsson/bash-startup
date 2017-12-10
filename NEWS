@@ -1,0 +1,7 @@
+bash-startup
+============
+
+Version: 0.1.0-9000 [2017-12-10]
+
+ o Created bash-startup script with functions generalized from a set of
+   in-house functions created over a few years.
