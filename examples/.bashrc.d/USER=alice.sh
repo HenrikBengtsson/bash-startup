@@ -1,1 +1,1 @@
-echo "Hello alice ($USER=$USER)"
+echo "Hello alice (USER=$USER)"
