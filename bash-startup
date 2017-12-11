@@ -74,7 +74,7 @@ function msg_echo() {
 ## Usage: debug_echo <msg>
 function debug_echo() {
     tput setaf 8 2> /dev/null ## gray
-    msg_echo "$*"
+    msg_echo "$(startup_duration)s: $*"
     tput sgr0 2> /dev/null    ## reset
 }
 
@@ -134,7 +134,7 @@ function startup_filter_by_envvar() {
     ## an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
     local neq='!'
     local pattern="$key=(?$neq($value|[^,=/]+%OR%$value)([,=/]|$))"
-##    debug_echo "$(startup_duration)s: - startup_filter_by_envvar: '$pattern'"
+##    debug_echo "- startup_filter_by_envvar: '$pattern'"
     printf "%s\n" $* | grep --perl-regexp -v "$pattern"
 }
 
@@ -173,7 +173,7 @@ function source_d() {
     local dropped=
     local value=
     
-    [[ $debug -ge 1 ]] && debug_echo "$(startup_duration)s: Sourcing folder $source_d_path ..."
+    [[ $debug -ge 1 ]] && debug_echo "Sourcing folder $source_d_path ..."
 
     ## Find all files
     local source_d_files=($(find -L "$source_d_path" -executable -type f ! -name '*~' 2> /dev/null | LC_ALL=C sort))
@@ -181,7 +181,7 @@ function source_d() {
     ## Filter on <key>=<value>, ... tags?
     local keys=($(startup_find_all_keys ${source_d_files[@]}))
     if [[ ${#keys[@]} -gt 0 ]]; then
-        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s: - Filtering based on ${#keys[@]} keys ..."
+        [[ $debug -ge 2 ]] && debug_echo "- Filtering based on ${#keys[@]} keys ..."
 
         ## Pre-define keys
         local interactive=true
@@ -198,53 +198,53 @@ function source_d() {
             if [[ $debug -ge 2 ]]; then
                 dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${keys[@]}" | sort) <(printf "%s\n" "${keys_tmp[@]}" | sort)))
 		if [[ ${#dropped[@]} -ne 0 ]]; then
-                    debug_echo "$(startup_duration)s:   + Dropped ${#dropped[@]} keys with empty values: ${dropped[@]}"
+                    debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[@]}"
 		fi
 	    fi
             keys=(${keys_tmp[@]})
 	fi
         if [[ $debug -ge 2 ]]; then
-            debug_echo "$(startup_duration)s:   + Keys to filter on (n=${#keys[@]}): ${keys[@]}"
-            debug_echo "$(startup_duration)s:   + Predefined keys: interactive=$interactive"
+            debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[@]}"
+            debug_echo "  + Predefined keys: interactive=$interactive"
         fi
 
 	
         ## Filter files
-        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s:   + Number of files before: ${#source_d_files[@]}"
+        [[ $debug -ge 2 ]] && debug_echo "  + Number of files before: ${#source_d_files[@]}"
         local source_d_files_tmp=()
         for key in ${keys[@]}; do
-            [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s:     - Number of files before: ${#source_d_files[@]}"
+            [[ $debug -ge 2 ]] && debug_echo "    - Number of files before: ${#source_d_files[@]}"
             source_d_files_tmp=($(startup_filter_by_envvar $key "${source_d_files[@]}"))
             if [[ $debug -ge 2 ]]; then
                 eval value=\$$key
                 dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | sort)))
                 if [[ ${#dropped[@]} -eq 0 ]]; then
-                    debug_echo "$(startup_duration)s:     - Filtering on '$key' (='$value'): dropped 0 files"
+                    debug_echo "    - Filtering on '$key' (='$value'): dropped 0 files"
                 else
-                    debug_echo "$(startup_duration)s:     - Filtering on '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[@]}")"
+                    debug_echo "    - Filtering on '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[@]}")"
                 fi
             fi
             source_d_files=(${source_d_files_tmp[@]})
 	    
-            [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s:     - Number of files after: ${#source_d_files[@]}"
+            [[ $debug -ge 2 ]] && debug_echo "    - Number of files after: ${#source_d_files[@]}"
         done
         
-        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s:   + Number of files after: ${#source_d_files[@]}"
-        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s: - Filtering based on ${#keys[@]} keys ... done"
+        [[ $debug -ge 2 ]] && debug_echo "  + Number of files after: ${#source_d_files[@]}"
+        [[ $debug -ge 2 ]] && debug_echo "- Filtering based on ${#keys[@]} keys ... done"
     fi
 
     
     ## Source remaining files
-    [[ $debug -ge 1 ]] && debug_echo "$(startup_duration)s: - Sourcing ${#source_d_files[@]} files ..."
+    [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ..."
     local ff=
     for ff in ${source_d_files[@]}; do
-       ( [[ $debug -ge 1 ]] || $dryrun ) && debug_echo "$(startup_duration)s: $prefix - $ff"
+       ( [[ $debug -ge 1 ]] || $dryrun ) && debug_echo "$prefix - $ff"
         $dryrun && continue
         source $ff
     done
-    [[ $debug -ge 1 ]] && debug_echo "$(startup_duration)s: - Sourcing ${#source_d_files[@]} files ...done"
+    [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ...done"
 
-    [[ $debug -ge 1 ]] && debug_echo "$(startup_duration)s: Sourcing folder $source_d_path ... done"
+    [[ $debug -ge 1 ]] && debug_echo "Sourcing folder $source_d_path ... done"
 } ## source_d()
 
 
@@ -287,14 +287,14 @@ function bash_startup() {
     done
 
     if [[ $debug -ge 2 ]]; then
-        debug_echo "$(startup_duration)s: bash_startup() ..."
-        debug_echo "$(startup_duration)s: BASH_SOURCE: $BASH_SOURCE"
-        debug_echo "$(startup_duration)s: Command-line arguments: $cmdargs"
-        debug_echo "$(startup_duration)s: STARTUP_KEEP_EMPTY_KEYS: ${STARTUP_KEEP_EMPTY_KEYS:-false}"
-        debug_echo "$(startup_duration)s: STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
-        debug_echo "$(startup_duration)s: STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
-        debug_echo "$(startup_duration)s: STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
-        debug_echo "$(startup_duration)s: action: $action"
+        debug_echo "bash_startup() ..."
+        debug_echo "BASH_SOURCE: $BASH_SOURCE"
+        debug_echo "Command-line arguments: $cmdargs"
+        debug_echo "STARTUP_KEEP_EMPTY_KEYS: ${STARTUP_KEEP_EMPTY_KEYS:-false}"
+        debug_echo "STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
+        debug_echo "STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
+        debug_echo "STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
+        debug_echo "action: $action"
     fi
     
     if [[ $action == help ]]; then
@@ -302,7 +302,7 @@ function bash_startup() {
     elif [[ $action == version ]]; then
         startup_version $BASH_SOURCE
     else
-        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s: Processing ${#dirs[@]} folders: ${dirs[@]}"
+        [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[@]}"
         for dir in ${dirs[@]}; do
            source_d $dir
         done
@@ -314,12 +314,12 @@ function bash_startup() {
     STARTUP_ON_ERROR=$org_onerror
     STARTUP_KEEP_EMPTY_KEYS=$org_emptykeys
     
-    [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s: bash_startup() ... done"
+    [[ $debug -ge 2 ]] && debug_echo "bash_startup() ... done"
 }
 
 ## Make sure script is source:ed
 if [[ $0 == $BASH_SOURCE ]]; then
-    error_echo "This script ($0) should not be called directly, but rather be source:d (or .:ed), e.g. 'source $0' or '. $0'"
+    error_echo "The $0 script should not be called directly, but rather be source:d (or .:ed), i.e. either as 'source $0' or '. $0'."
     exit 1
 fi
 
