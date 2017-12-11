@@ -20,7 +20,7 @@
 ###  --debug       Display debug messages ("more verbose")
 ###
 ###
-### EXAMPLE:
+### EXAMPLES:
 ### The easiest way is to source the bash-startup script with a set of folders:
 ###
 ###   . /path/to/bash-startup ~/.bashrc.d
