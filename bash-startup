@@ -80,7 +80,7 @@ function debug_echo() {
 
 ## Usage: warn_echo <msg>
 function warn_echo() {
-    tput setaf 3 2> /dev/null ## red
+    tput setaf 3 2> /dev/null ## yellow
     msg_echo "WARNING: $*"
     tput sgr0 2> /dev/null    ## reset
 }
