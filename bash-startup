@@ -40,20 +40,39 @@
 ###   source_d /etc/bashrc
 ###   STARTUP_DEBUG=true source_d ~/.bashrc.d
 ###
-###
 ### FILE AND DIRECTORY NAME FILTERS:
-### If a directory or file name contains one or more <key>=<value> tags, it
-### will be included if they all meet the test:
+### It is only files that are _executable_ that are considered; all other
+### files are ignored.  Further more, files matching *~ are also dropped.
+### Files and directories are filtered based on key-value rules incorporated
+### in their names.  Such key-value rules are separated by commas (,) or
+### folder separators (/).  The following key-value rules are supported:
 ###
-###  - interactive=true   included in interactive mode (PS1 is set)
-###  - interactive=false  skip in interactive mode
-###  - HOSTNAME=<value>   included if env var HOSTNAME equals <value>
+###  - a=x            keep if value of 'a' is 'x'
+###  - a=x%OR%y%ORz   keep if value of 'a' is 'x', 'y', or 'z'
+###  - a!=x           keep if value of 'a' is not 'x'
+###  - a!=x%OR%y%ORz  keep if value of 'a' is neither 'x', 'y', nor 'z'
 ###
-### For example, ~/.bashrc.d/interactive=true/hey.sh
-### 
+### where key 'a' is any environment variable or one of the following
+### predefined variables:
+###
+###  - 'interactive'  'true' if env var 'PS1' is set, otherwise 'false'
+###
+### A value 'x' must _not_ contain a comma (,), a folder separator (/),
+### or any of the logical operators (%OR%).
+###
+### If a pathname (path + filename) has multiple key-value pairs, then all
+### key-value rules must be fulfilled in order for the pathname not to be 
+### dropped by the filtering.  For example, file
+###
+###  ~/.bashrc.d/interactive=true/USER!=alice%OR%bob/hello,PAPERSIZE=a4.sh
+###
+### will only be used in an interactive Bash session, if the USER is neither
+### 'alice' nor 'bob', and the PAPERSIZE is set to 'a4'.
+###
+###
 ### DEBUGGING AND TESTING:
 ### To debug what files are sourced and how long each of them takes set
-### STARTUP_DEBUG=true.  To perform a dry run set STARTUP_DRYRUN=true.
+### STARTUP_DEBUG=1.  To perform a dry run set STARTUP_DRYRUN=1.
 ### If calling bash_startup(), these may be setup (temporarily) by using
 ### options --debug and --dryrun, respectively.
 ###
@@ -154,7 +173,9 @@ function startup_filter_by_envvar() {
 }
 
 
-## Usage: source_d <path>
+## ---------------------------------------------------------------------------
+## Public functions
+## ---------------------------------------------------------------------------
 function source_d() {
     local source_d_path=$1
 
