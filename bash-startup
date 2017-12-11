@@ -258,7 +258,7 @@ function bash_startup() {
     local cmdargs=$*
     local action=
     local debug=0
-    local dirs=
+    local dirs=()
    
     # Parse command-line options
     while [[ $# > 0 ]]; do
@@ -281,7 +281,7 @@ function bash_startup() {
         elif [[ $1 == "--warn" ]]; then
             STARTUP_ON_ERROR=warn
         else
-            dirs="$dirs $1"
+            dirs+=($1)
         fi
         shift
     done
@@ -302,8 +302,8 @@ function bash_startup() {
     elif [[ $action == version ]]; then
         startup_version $BASH_SOURCE
     else
-        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s: Processing ${#dirs[@]} folders:$dirs"   
-        for dir in $dirs; do
+        [[ $debug -ge 2 ]] && debug_echo "$(startup_duration)s: Processing ${#dirs[@]} folders: ${dirs[@]}"
+        for dir in ${dirs[@]}; do
            source_d $dir
         done
     fi
