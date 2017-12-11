@@ -16,7 +16,8 @@
 ###  --version     Display version
 ###
 ###  --dryrun      Dry run with output without sourcing anything
-###  --debug       Display debug messages
+###  --verbose     Display verbose messages
+###  --debug       Display debug messages ("more verbose")
 ###
 ###
 ### EXAMPLE:
