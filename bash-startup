@@ -74,21 +74,21 @@ function msg_echo() {
 ## Usage: debug_echo <msg>
 function debug_echo() {
     tput setaf 8 2> /dev/null ## gray
-    msg_echo "$(startup_duration)s: $*"
+    >&2 echo "$(startup_duration)s: $*"
     tput sgr0 2> /dev/null    ## reset
 }
 
 ## Usage: warn_echo <msg>
 function warn_echo() {
     tput setaf 3 2> /dev/null ## yellow
-    msg_echo "WARNING: $*"
+    >&2 echo "WARNING: $*"
     tput sgr0 2> /dev/null    ## reset
 }
 
 ## Usage: error_echo <msg>
 function error_echo() {
     tput setaf 1 2> /dev/null ## red
-    msg_echo "ERROR: $*"
+    >&2 echo "ERROR: $*"
     tput sgr0 2> /dev/null    ## reset
 }
 
@@ -117,8 +117,8 @@ function startup_find_all_keys() {
 }
 
 function startup_filter_by_envvar() {
-    ## Drop all string with <key>=<value> that does not match <key>=$key or
-    ## <key>=$key%OR%<other> etc.
+    local op=$1
+    shift
     local key=$1
     eval value=\$$key
     shift
@@ -130,12 +130,17 @@ function startup_filter_by_envvar() {
         value="false|FALSE"
     fi
     
-    ## This requires negative-lookahead regular expression, which in turn requires
-    ## an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
+    ## This requires negative-lookahead regular expression, which in turn
+    ## requires an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
     local neq='!'
-    local pattern="$key=(?$neq($value|[^,=/]+%OR%$value)([.,=/]|%OR%.*|$))"
-##    debug_echo "- startup_filter_by_envvar: '$pattern'"
-    printf "%s\n" $* | grep --perl-regexp -v "$pattern"
+    if [[ $op == EQUAL ]]; then
+        local pattern="$key=(?$neq($value|[^,=/]+%OR%$value)([.,=/]|%OR%.*|$))"
+  ##    debug_echo "- startup_filter_by_envvar: '$pattern'"
+        printf "%s\n" $* | grep --perl-regexp -v "$pattern"
+    else
+#	warn_echo "Ignoring non-supported filter operator: $op"
+        printf "%s\n" $*
+    fi
 }
 
 
@@ -214,19 +219,21 @@ function source_d() {
         local source_d_files_tmp=()
         for key in ${keys[@]}; do
             [[ $debug -ge 2 ]] && debug_echo "    - Number of files before: ${#source_d_files[@]}"
-            source_d_files_tmp=($(startup_filter_by_envvar $key "${source_d_files[@]}"))
-            if [[ $debug -ge 2 ]]; then
-                eval value=\$$key
-                dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | sort)))
-                if [[ ${#dropped[@]} -eq 0 ]]; then
-                    debug_echo "    - Filtering on '$key' (='$value'): dropped 0 files"
-                else
-                    debug_echo "    - Filtering on '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[@]}")"
+	    for op in EQUAL; do
+                source_d_files_tmp=($(startup_filter_by_envvar $op $key "${source_d_files[@]}"))
+                if [[ $debug -ge 2 ]]; then
+                    eval value=\$$key
+                    dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | sort)))
+                    if [[ ${#dropped[@]} -eq 0 ]]; then
+                        debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
+                    else
+                        debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[@]}")"
+                    fi
                 fi
-            fi
-            source_d_files=(${source_d_files_tmp[@]})
-	    
-            [[ $debug -ge 2 ]] && debug_echo "    - Number of files after: ${#source_d_files[@]}"
+                source_d_files=(${source_d_files_tmp[@]})
+    	    
+                [[ $debug -ge 2 ]] && debug_echo "    - Number of files after: ${#source_d_files[@]}"
+	    done
         done
         
         [[ $debug -ge 2 ]] && debug_echo "  + Number of files after: ${#source_d_files[@]}"
