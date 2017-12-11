@@ -133,7 +133,7 @@ function startup_filter_by_envvar() {
     ## This requires negative-lookahead regular expression, which in turn requires
     ## an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
     local neq='!'
-    local pattern="$key=(?$neq($value|[^,=/]+%OR%$value)([,=/]|$))"
+    local pattern="$key=(?$neq($value|[^,=/]+%OR%$value)([.,=/]|%OR%.*|$))"
 ##    debug_echo "- startup_filter_by_envvar: '$pattern'"
     printf "%s\n" $* | grep --perl-regexp -v "$pattern"
 }
