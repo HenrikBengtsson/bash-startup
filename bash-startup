@@ -44,8 +44,11 @@
 ### If a directory or file name contains one or more <key>=<value> tags, it
 ### will be included if they all meet the test:
 ###
-###  - interactive=TRUE   included in interactive mode (PS1 is set)
+###  - interactive=true   included in interactive mode (PS1 is set)
+###  - interactive=false  skip in interactive mode
 ###  - HOSTNAME=<value>   included if HOSTNAME equals <value>
+###
+### For example, ~/.bashrc.d/interactive=true/hey.sh
 ### 
 ### DEBUGGING AND TESTING:
 ### To debug what files are sourced and how long each of them takes set
@@ -156,8 +159,11 @@ function source_d() {
 
     ## Filter: Not running in interactive mode?
     if [[ -z "$PS1" ]]; then
-        ## Drop pathnames with interactive=TRUE
-        source_d_files=$(printf "%s\n" ${source_d_files[@]} | grep -vF "interactive=TRUE")
+        ## Drop pathnames with interactive=true
+        source_d_files=$(printf "%s\n" ${source_d_files[@]} | grep -vE "interactive=(true|TRUE)")
+    else
+        ## Drop pathnames with interactive=false
+        source_d_files=$(printf "%s\n" ${source_d_files[@]} | grep -vE "interactive=(false|FALSE)")
     fi
 
     ## Filter: Filter based on HOSTNAME=<value>?
