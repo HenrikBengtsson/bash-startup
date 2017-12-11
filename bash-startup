@@ -196,7 +196,7 @@ function source_d() {
                 keys_tmp+=($key)
             done
             if [[ $debug -ge 2 ]]; then
-                dropped=($(LC_ALL=C comm --nocheck-order -23 <(printf "%s\n" "${keys[@]}" | sort) <(printf "%s\n" "${keys_tmp[@]}" | sort)))
+                dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${keys[@]}" | sort) <(printf "%s\n" "${keys_tmp[@]}" | sort)))
 		if [[ ${#dropped[@]} -ne 0 ]]; then
                     debug_echo "$(startup_duration)s:   + Dropped ${#dropped[@]} keys with empty values: ${dropped[@]}"
 		fi
@@ -217,7 +217,7 @@ function source_d() {
             source_d_files_tmp=($(startup_filter_by_envvar $key "${source_d_files[@]}"))
             if [[ $debug -ge 2 ]]; then
                 eval value=\$$key
-                dropped=($(LC_ALL=C comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | sort)))
+                dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | sort)))
                 if [[ ${#dropped[@]} -eq 0 ]]; then
                     debug_echo "$(startup_duration)s:     - Filtering on '$key' (='$value'): dropped 0 files"
                 else
