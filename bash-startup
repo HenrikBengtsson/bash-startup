@@ -217,9 +217,6 @@ function bash_startup() {
     $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
     $debug && debug_echo "${prefix}$(startup_duration)s: action: $action"
 
-    ## Default to display help, unless folders are specified
-    if [[ -z $action ]]; then return; fi
-    
     if [[ $action == help ]]; then
         startup_help $BASH_SOURCE
     elif [[ $action == version ]]; then
