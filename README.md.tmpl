@@ -2,7 +2,7 @@
 
 # bash-startup - Bash Startup Utility Functions
 
-** WARNING: This is work in progress and is likely to change at anytime **
+**WARNING: This is work in progress and is likely to change at anytime**
 
 
 ## Usage
