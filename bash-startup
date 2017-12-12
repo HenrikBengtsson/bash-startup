@@ -99,9 +99,8 @@ function color_echo() {
     local color=$1
     shift
     if [[ -z $color_echo_supported ]]; then
-        which tput > /dev/null
 	color_echo_supported=false
-	[[ $? -eq 0 ]] && color_echo_supported=true
+	which tput > /dev/null && color_echo_supported=true
     fi
     if $color_echo_supported; then
         tput setaf "$color"
@@ -131,7 +130,7 @@ function error_echo() {
 function startup_help() {
     local res=
     res=$(grep -E "^###([ ].*|)$" "$1" | cut -b 5-)
-    printf '%s\n' "${res[@]}"
+    printf '%s\\n' "${res[@]}"
 }
 
 ## Display the version
@@ -175,17 +174,17 @@ function startup_filter_by_envvar() {
 	local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
         local pattern="$key=(?$neq($value_pattern))"
 	## Return the complementary of the above match
-        printf "%s\n" "$@" | grep --perl-regexp -v "$pattern"
+        printf "%s\\n" "$@" | grep --perl-regexp -v "$pattern"
     elif [[ $op == NOT_EQUAL ]]; then
 	## Match strings with $key!=$value-pattern that _does_
 	## have the correct $value-pattern
 	local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
         local pattern="$key!=(?=($value_pattern))"
 	## Return the complementary of the above match
-        printf "%s\n" "$@" | grep --perl-regexp -v "$pattern"
+        printf "%s\\n" "$@" | grep --perl-regexp -v "$pattern"
     else
 #	warn_echo "Ignoring non-supported filter operator: $op"
-        printf "%s\n" "$@"
+        printf "%s\\n" "$@"
     fi
 }
 
@@ -251,15 +250,15 @@ function source_d() {
             for key in "${keys[@]}"; do
                 eval value="\$$key"
                 [[ -z $value ]] && continue
-                keys_tmp+=($key)
+                keys_tmp+=("$key")
             done
             if [[ $debug -ge 2 ]]; then
-                dropped=($(comm --nocheck-order -23 <(printf "%s\n" "${keys[@]}" | LC_ALL=C sort) <(printf "%s\n" "${keys_tmp[@]}" | LC_ALL=C sort)))
+                dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${keys[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${keys_tmp[@]}" | LC_ALL=C sort)))
 		if [[ ${#dropped[@]} -ne 0 ]]; then
                     debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[*]}"
 		fi
 	    fi
-            keys=(${keys_tmp[@]})
+            keys=("${keys_tmp[@]}")
 	fi
         if [[ $debug -ge 2 ]]; then
             debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[*]}"
@@ -276,7 +275,7 @@ function source_d() {
                 source_d_files_tmp=($(startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
                 if [[ $debug -ge 2 ]]; then
                     eval value="\$$key"
-                    dropped=($(comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | LC_ALL=C sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | LC_ALL=C sort)))
+                    dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${source_d_files[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${source_d_files_tmp[@]}" | LC_ALL=C sort)))
                     if [[ ${#dropped[@]} -eq 0 ]]; then
                         debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
                     else
@@ -343,14 +342,14 @@ function bash_startup() {
         elif [[ $1 == "--warn" ]]; then
             STARTUP_ON_ERROR=warn
         else
-            dirs+=($1)
+            dirs+=("$1")
         fi
         shift
     done
 
     if [[ $debug -ge 2 ]]; then
         debug_echo "bash_startup() ..."
-        debug_echo "BASH_SOURCE: $BASH_SOURCE"
+        debug_echo "BASH_SOURCE (n=${#BASH_SOURCE[@]}): ${BASH_SOURCE[*]}"
         debug_echo "Command-line arguments: $cmdargs"
         debug_echo "STARTUP_KEEP_EMPTY_KEYS: ${STARTUP_KEEP_EMPTY_KEYS:-false}"
         debug_echo "STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
@@ -360,10 +359,10 @@ function bash_startup() {
     fi
     
     if [[ $action == help ]]; then
-        startup_help "$BASH_SOURCE"
+        startup_help "${BASH_SOURCE[0]}"
 	return 0
     elif [[ $action == version ]]; then
-        startup_version "$BASH_SOURCE"
+        startup_version "${BASH_SOURCE[0]}"
 	return 0
     else
         [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[*]}"
@@ -382,7 +381,7 @@ function bash_startup() {
 }
 
 ## Make sure script is source:ed
-if [[ $0 == "$BASH_SOURCE" ]]; then
+if [[ $0 == "${BASH_SOURCE[0]}" ]]; then
     error_echo "The $0 script should not be called directly, but rather be source:d (or .:ed), i.e. either as 'source $0' or '. $0'."
     exit 1
 fi
@@ -394,4 +393,3 @@ if [[ $# -gt 0 ]]; then
 fi
 
 return 0
-

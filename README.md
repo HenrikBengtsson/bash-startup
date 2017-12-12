@@ -91,4 +91,5 @@ Version: 0.2.0-9000
 Copyright: Henrik Bengtsson (2017)
 License: GPL (>= 3.0)
 Source: https://github.com/HenrikBengtsson/bash-startup
+
 ```
