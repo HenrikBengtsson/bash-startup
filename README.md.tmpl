@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/HenrikBengtsson/bash-startup.svg?branch=develop)](https://travis-ci.org/HenrikBengtsson/bash-startup)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bed069f5d96b4e2ea2b3ab1a96b4b784)](https://www.codacy.com/app/HenrikBengtsson/bash-startup?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HenrikBengtsson/bash-startup&amp;utm_campaign=Badge_Grade)
 
 # bash-startup - Bash Startup Utility Functions
 

@@ -39,7 +39,7 @@ for ii in "${!keys[@]}"; do
     echo "OK"
 
     value=1
-    jj=$ii #(expr $ii + 0)
+    jj=$ii
     truth=(${files[@]/${files[$jj]}})
     eval $key=$value
     printf "Filter ($key=$value EQUAL): "
@@ -55,7 +55,7 @@ for ii in "${!keys[@]}"; do
     echo "OK"
 
     value=11
-    jj=$(expr $ii + 3)
+    jj=$(($ii + 3))
     truth=(${files[@]/${files[$jj]}})
     eval $key=$value
     printf "Filter ($key=$value NOT_EQUAL): "
