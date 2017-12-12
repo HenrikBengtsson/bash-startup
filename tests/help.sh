@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-## Stop on error and trace errors
-set -o errexit
-set -o errtrace
-trap '>&2 echo "TEST ERROR: $0 (exit code $?)"; exit $?' ERR 
+. tests/init/load.sh
 
 ## Help
 echo "bash-startup --help ..."
