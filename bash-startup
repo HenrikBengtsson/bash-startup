@@ -129,7 +129,8 @@ function error_echo() {
 
 ## Display the help
 function startup_help() {
-    local res=$(grep -E "^###([ ].*|)$" "$1" | cut -b 5-)
+    local res=
+    res=$(grep -E "^###([ ].*|)$" "$1" | cut -b 5-)
     printf '%s\n' "${res[@]}"
 }
 
@@ -279,7 +280,7 @@ function source_d() {
                     if [[ ${#dropped[@]} -eq 0 ]]; then
                         debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
                     else
-                        debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[*]}")"
+                        debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files (\"${dropped[*]}\")"
                     fi
                 fi
                 source_d_files=(${source_d_files_tmp[@]})
@@ -322,7 +323,7 @@ function bash_startup() {
     local dirs=()
    
     # Parse command-line options
-    while [[ $# > 0 ]]; do
+    while [[ $# -gt 0 ]]; do
         if [[ "$1" == "--help" ]]; then
             action=help
         elif [[ "$1" == "--version" ]]; then
