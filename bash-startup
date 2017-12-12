@@ -16,10 +16,11 @@
 ###  --version     Display version
 ###
 ###  --dryrun      Dry run with output without sourcing anything
-###  --debug       Display debug messages
+###  --verbose     Display verbose messages
+###  --debug       Display debug messages ("more verbose")
 ###
 ###
-### EXAMPLE:
+### EXAMPLES:
 ### The easiest way is to source the bash-startup script with a set of folders:
 ###
 ###   . /path/to/bash-startup ~/.bashrc.d
@@ -39,23 +40,48 @@
 ###   source_d /etc/bashrc
 ###   STARTUP_DEBUG=true source_d ~/.bashrc.d
 ###
-###
 ### FILE AND DIRECTORY NAME FILTERS:
-### If a directory or file name contains one or more <key>=<value> tags, it
-### will be included if they all meet the test:
+### It is only files that are _executable_ that are considered; all other
+### files are ignored.  Further more, files matching *~, *#, or #* are
+### always dropped.
+### Files and directories are filtered based on key-value rules incorporated
+### in their names.  Such key-value rules are separated by commas (,) or
+### folder separators (/).  The following key-value rules are supported:
 ###
-###  - interactive=TRUE   included in interactive mode (PS1 is set)
-###  - HOSTNAME=<value>   included if HOSTNAME equals <value>
-### 
+###  - a=x               keep if value of 'a' is 'x'
+###  - a=x%OR%y%OR%z     keep if value of 'a' is 'x', 'y', or 'z'
+###  - a!=x              keep if value of 'a' is not 'x'
+###  - a!=x%OR%y%OR%z    keep if value of 'a' is neither 'x', 'y', nor 'z'
+###  - a%HAS%x           keep if value of 'a' contains 'x'
+###  - a%HAS%x%OR%y%OR%z keep if value of 'a' contains 'x', 'y', or 'z'
+###
+### where key 'a' is any environment variable or one of the following
+### predefined variables:
+###
+###  - 'interactive'  'true' if env var 'PS1' is set, otherwise 'false'
+###
+### A value 'x' must _not_ contain a comma (,), a folder separator (/),
+### or any of the logical operators (%OR%).
+###
+### If a pathname (path + filename) has multiple key-value pairs, then all
+### key-value rules must be fulfilled in order for the pathname not to be 
+### dropped by the filtering.  For example, file
+###
+###  ~/.bashrc.d/interactive=true/USER!=alice%OR%bob/hello,PAPERSIZE=a4.sh
+###
+### will only be used in an interactive Bash session, if the USER is neither
+### 'alice' nor 'bob', and the PAPERSIZE is set to 'a4'.
+###
+###
 ### DEBUGGING AND TESTING:
 ### To debug what files are sourced and how long each of them takes set
-### STARTUP_DEBUG=true.  To perform a dry run set STARTUP_DRYRUN=true.
+### STARTUP_DEBUG=1.  To perform a dry run set STARTUP_DRYRUN=1.
 ### If calling bash_startup(), these may be setup (temporarily) by using
 ### options --debug and --dryrun, respectively.
 ###
-### Version: 0.1.0-9000
+### Version: 0.2.0
 ### Copyright: Henrik Bengtsson (2017)
-### License: GPL (>= 2.1)
+### License: GPL (>= 3.0)
 ### Source: https://github.com/HenrikBengtsson/bash-startup
 
 
@@ -67,25 +93,38 @@ function msg_echo() {
     >&2 echo "$*"
 }
 
+color_echo_supported=
+
+function color_echo() {
+    local color=$1
+    shift
+    if [[ -z $color_echo_supported ]]; then
+        which tput > /dev/null
+	color_echo_supported=false
+	[[ $? -eq 0 ]] && color_echo_supported=true
+    fi
+    if $color_echo_supported; then
+        tput setaf $color
+        echo "$*"
+        tput sgr0
+    else
+        echo "$*"
+    fi
+}
+
 ## Usage: debug_echo <msg>
 function debug_echo() {
-    tput setaf 8 2> /dev/null ## gray
-    msg_echo "$*"
-    tput sgr0 2> /dev/null    ## reset
+    >&2 color_echo 8 "$(startup_duration)s: $*"  ## gray
 }
 
 ## Usage: warn_echo <msg>
 function warn_echo() {
-    tput setaf 3 2> /dev/null ## red
-    msg_echo "WARNING: $*"
-    tput sgr0 2> /dev/null    ## reset
+    >&2 color_echo 3 "WARNING: $*"  ## yellow
 }
 
 ## Usage: error_echo <msg>
 function error_echo() {
-    tput setaf 1 2> /dev/null ## red
-    msg_echo "ERROR: $*"
-    tput sgr0 2> /dev/null    ## reset
+    >&2 color_echo 1 "ERROR: $*"  ## red
 }
 
 ## Display the help
@@ -107,86 +146,180 @@ function startup_duration() {
     echo $d
 }
 
+function startup_find_all_keys() {
+    ## Identify all unique <key>:s in string with <key>=<value>
+    echo "$*" | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/[,/]/\n/g' | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/(=|!=).*//g' | LC_ALL=C sort -u
+}
+
 function startup_filter_by_envvar() {
-    ## Drop all string with <key>=<value> that does not match <key>=${key} or
-    ## <key>=${key}%OR%<other> etc.
+    local op=$1
+    shift
     local key=$1
     eval value=\$$key
     shift
 
-    ## This requires negative-lookahead regular expression, which in turn requires
-    ## an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
-    local neq='!'
-    local pattern="${key}=(?${neq}(${value}|[^,=]+%OR%${value}))"
-#    debug_echo "${prefix}$(startup_duration)s: - startup_filter_by_envvar: '$pattern'"
-    printf "%s\n" $* | grep --perl-regexp -v "$pattern"
+    ## Ignore case when filtering on logical values 
+    if [[ $value =~ ^(true|TRUE)$ ]]; then
+        value="true|TRUE"
+    elif [[ $value =~ ^(false|FALSE)$ ]]; then
+        value="false|FALSE"
+    fi
+    
+    ## This requires negative-lookahead regular expression, which in turn
+    ## requires an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
+    if [[ $op == EQUAL ]]; then
+	## Match strings with $key=$value-pattern that does _not_
+	## have the correct $value-pattern
+        local neq='!'
+	local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
+        local pattern="$key=(?$neq($value_pattern))"
+	## Return the complementary of the above match
+        printf "%s\n" $* | grep --perl-regexp -v "$pattern"
+    elif [[ $op == NOT_EQUAL ]]; then
+	## Match strings with $key!=$value-pattern that _does_
+	## have the correct $value-pattern
+	local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
+        local pattern="$key!=(?=($value_pattern))"
+	## Return the complementary of the above match
+        printf "%s\n" $* | grep --perl-regexp -v "$pattern"
+    else
+#	warn_echo "Ignoring non-supported filter operator: $op"
+        printf "%s\n" $*
+    fi
 }
 
 
-## Usage: source_d <path>
+function startup_find_all_files() {
+    find -L "$1" -executable -type f ! -name '*~' ! -name '#*' ! -name '*#' 2> /dev/null | LC_ALL=C sort
+}
+
+
+## ---------------------------------------------------------------------------
+## Public functions
+## ---------------------------------------------------------------------------
 function source_d() {
     local source_d_path=$1
 
     if [[ $# -eq 0 ]]; then
         msg_echo "source_d: path not specified"
         return 1
-    elif [[ ! -d "${source_d_path}" ]]; then
-	if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
-            error_echo "source_d: no such path: ${source_d_path}"
-	elif [[ ${STARTUP_ON_ERROR} == warn ]]; then
-            warn_echo "source_d: no such path: ${source_d_path}"
+    elif [[ ! -d "$source_d_path" ]]; then
+        if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
+            error_echo "source_d: no such path: $source_d_path"
+        elif [[ $STARTUP_ON_ERROR == warn ]]; then
+            warn_echo "source_d: no such path: $source_d_path"
         fi
         return 1
     fi
 
-    local debug=false
-    if [[ -n "${STARTUP_DEBUG}" ]]; then debug=true; fi
+    local debug=$STARTUP_DEBUG
+    if [[ $debug = false ]]; then
+	debug=0
+    elif [[ $debug = true ]]; then
+	debug=1
+    fi
     
     local prefix=
     local dryrun=false
-    if [[ -n "${STARTUP_DRYRUN}" ]]; then
-	prefix="[DRYRUN] "
-	dryrun=true
+    if [[ -n "$STARTUP_DRYRUN" ]]; then
+        prefix="[DRYRUN] "
+        dryrun=true
     fi
+
+    ## Temporary variables used below
+    local dropped=
+    local value=
     
-    $debug && debug_echo "$(startup_duration)s: Sourcing ${source_d_path}/ ..."
+    [[ $debug -ge 1 ]] && debug_echo "Sourcing folder $source_d_path ..."
 
     ## Find all files
-    local source_d_files=$(find -L "${source_d_path}" -executable -type f ! -name '*~' 2> /dev/null | LC_ALL=C sort)
+    local source_d_files=($(startup_find_all_files "$source_d_path"))
 
-    ## Filter: Not running in interactive mode?
-    if [[ -z "$PS1" ]]; then
-        ## Drop pathnames with interactive=TRUE
-        source_d_files=$(printf "%s\n" ${source_d_files[@]} | grep -vF "interactive=TRUE")
+    ## Filter on <key>=<value>, ... tags?
+    local keys=($(startup_find_all_keys ${source_d_files[@]}))
+    if [[ ${#keys[@]} -gt 0 ]]; then
+        [[ $debug -ge 2 ]] && debug_echo "- Filtering based on ${#keys[@]} keys ..."
+
+        ## Pre-define keys
+        local interactive=true
+        if [[ -z "$PS1" ]]; then interactive=false; fi
+        
+        ## Ignore empty-value or non-set keys?
+        if [[ -z $STARTUP_KEEP_EMPTY_KEYS ]]; then
+            local keys_tmp=()
+            for key in ${keys[@]}; do
+                eval value=\$$key
+                [[ -z $value ]] && continue
+                keys_tmp+=($key)
+            done
+            if [[ $debug -ge 2 ]]; then
+                dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${keys[@]}" | sort) <(printf "%s\n" "${keys_tmp[@]}" | sort)))
+		if [[ ${#dropped[@]} -ne 0 ]]; then
+                    debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[@]}"
+		fi
+	    fi
+            keys=(${keys_tmp[@]})
+	fi
+        if [[ $debug -ge 2 ]]; then
+            debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[@]}"
+            debug_echo "  + Predefined keys: interactive=$interactive"
+        fi
+
+	
+        ## Filter files
+        [[ $debug -ge 2 ]] && debug_echo "  + Number of files before: ${#source_d_files[@]}"
+        local source_d_files_tmp=()
+        for key in ${keys[@]}; do
+            [[ $debug -ge 2 ]] && debug_echo "    - Number of files before: ${#source_d_files[@]}"
+	    for op in EQUAL NOT_EQUAL; do
+                source_d_files_tmp=($(startup_filter_by_envvar $op $key "${source_d_files[@]}"))
+                if [[ $debug -ge 2 ]]; then
+                    eval value=\$$key
+                    dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${source_d_files[@]}" | sort) <(printf "%s\n" "${source_d_files_tmp[@]}" | sort)))
+                    if [[ ${#dropped[@]} -eq 0 ]]; then
+                        debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
+                    else
+                        debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[@]}")"
+                    fi
+                fi
+                source_d_files=(${source_d_files_tmp[@]})
+    	    
+                [[ $debug -ge 2 ]] && debug_echo "    - Number of files after: ${#source_d_files[@]}"
+	    done
+        done
+        
+        [[ $debug -ge 2 ]] && debug_echo "  + Number of files after: ${#source_d_files[@]}"
+        [[ $debug -ge 2 ]] && debug_echo "- Filtering based on ${#keys[@]} keys ... done"
     fi
 
-    ## Filter: Filter based on HOSTNAME=<value>?
-    if [[ -n "${HOSTTYPE}" ]]; then
-        source_d_files=$(startup_filter_by_envvar HOSTNAME "${source_d_files[@]}")
-    fi
-
+    
     ## Source remaining files
+    [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ..."
     local ff=
-    for ff in ${source_d_files}; do
-       ( $debug || $dryrun ) && debug_echo "$(startup_duration)s: ${prefix} - ${ff}"
-	$dryrun && continue
-        source "${ff}"
+    for ff in ${source_d_files[@]}; do
+       ( [[ $debug -ge 1 ]] || $dryrun ) && debug_echo "$prefix - $ff"
+        $dryrun && continue
+        source $ff
     done
+    [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ...done"
 
-    $debug && debug_echo "$(startup_duration)s: Sourcing ${source_d_path}/ ... done"
+    [[ $debug -ge 1 ]] && debug_echo "Sourcing folder $source_d_path ... done"
+
+    return 0
 } ## source_d()
 
 
 function bash_startup() {
     ## Record startup env vars
-    local org_debug=${STARTUP_DEBUG}
-    local org_dryrun=${STARTUP_DRYRUN}
-    local org_onerror=${STARTUP_ON_ERROR}
+    local org_debug=$STARTUP_DEBUG
+    local org_dryrun=$STARTUP_DRYRUN
+    local org_onerror=$STARTUP_ON_ERROR
+    local org_emptykeys=$STARTUP_KEEP_EMPTY_KEYS
 
     local cmdargs=$*
     local action=
-    local debug=false
-    local dirs=
+    local debug=0
+    local dirs=()
    
     # Parse command-line options
     while [[ $# > 0 ]]; do
@@ -194,39 +327,46 @@ function bash_startup() {
             action=help
         elif [[ "$1" == "--version" ]]; then
             action=version
+        elif [[ "$1" == "--verbose" ]]; then
+            STARTUP_DEBUG=1
+            debug=1
         elif [[ "$1" == "--debug" ]]; then
-            STARTUP_DEBUG=true
-	    debug=true
+            STARTUP_DEBUG=2
+            debug=2
         elif [[ "$1" == "--dryrun" ]]; then
             STARTUP_DRYRUN=true
+        elif [[ $1 == "--emptykeys" ]]; then
+	    STARTUP_KEEP_EMPTY_KEYS=true
         elif [[ $1 == "--strict" ]]; then
-	    STARTUP_ON_ERROR=error
+            STARTUP_ON_ERROR=error
         elif [[ $1 == "--warn" ]]; then
-	    STARTUP_ON_ERROR=warn
-	else
-	    dirs="$dirs $1"
-	fi
-	shift
+            STARTUP_ON_ERROR=warn
+        else
+            dirs+=($1)
+        fi
+        shift
     done
-    
-    $debug && debug_echo "${prefix}$(startup_duration)s: bash_startup() ..."
-    $debug && debug_echo "${prefix}$(startup_duration)s: BASH_SOURCE: $BASH_SOURCE"
-    $debug && debug_echo "${prefix}$(startup_duration)s: Command-line arguments: $cmdargs"
-    $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
-    $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
-    $debug && debug_echo "${prefix}$(startup_duration)s: STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
-    $debug && debug_echo "${prefix}$(startup_duration)s: action: $action"
 
-    ## Default to display help, unless folders are specified
-    if [[ -z $action ]]; then return; fi
+    if [[ $debug -ge 2 ]]; then
+        debug_echo "bash_startup() ..."
+        debug_echo "BASH_SOURCE: $BASH_SOURCE"
+        debug_echo "Command-line arguments: $cmdargs"
+        debug_echo "STARTUP_KEEP_EMPTY_KEYS: ${STARTUP_KEEP_EMPTY_KEYS:-false}"
+        debug_echo "STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
+        debug_echo "STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
+        debug_echo "STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
+        debug_echo "action: $action"
+    fi
     
     if [[ $action == help ]]; then
         startup_help $BASH_SOURCE
+	return 0
     elif [[ $action == version ]]; then
         startup_version $BASH_SOURCE
+	return 0
     else
-        $debug && debug_echo "${prefix}$(startup_duration)s: Processing ${#dirs[@]} folders:$dirs"   
-        for dir in $dirs; do
+        [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[@]}"
+        for dir in ${dirs[@]}; do
            source_d $dir
         done
     fi
@@ -235,17 +375,22 @@ function bash_startup() {
     STARTUP_DEBUG=$org_debug
     STARTUP_DRYRUN=$org_dryrun
     STARTUP_ON_ERROR=$org_onerror
+    STARTUP_KEEP_EMPTY_KEYS=$org_emptykeys
     
-    $debug && debug_echo "${prefix}$(startup_duration)s: bash_startup() ... done"
+    [[ $debug -ge 2 ]] && debug_echo "bash_startup() ... done"
 }
 
 ## Make sure script is source:ed
 if [[ $0 == $BASH_SOURCE ]]; then
-    error_echo "This script ($0) should not be called directly, but rather be source:d (or .:ed), e.g. 'source $0' or '. $0'"
+    error_echo "The $0 script should not be called directly, but rather be source:d (or .:ed), i.e. either as 'source $0' or '. $0'."
     exit 1
 fi
 
 ## Process command-line arguments, if any
 if [[ $# -gt 0 ]]; then
     bash_startup $*
+    return $?
 fi
+
+return 0
+
