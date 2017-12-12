@@ -233,9 +233,11 @@ function source_d() {
     [[ $debug -ge 1 ]] && debug_echo "Sourcing folder $source_d_path ..."
 
     ## Find all files
+    # shellcheck disable=SC2207
     local source_d_files=($(startup_find_all_files "$source_d_path"))
 
     ## Filter on <key>=<value>, ... tags?
+    # shellcheck disable=SC2207
     local keys=($(startup_find_all_keys "${source_d_files[@]}"))
     if [[ ${#keys[@]} -gt 0 ]]; then
         [[ $debug -ge 2 ]] && debug_echo "- Filtering based on ${#keys[@]} keys ..."
@@ -253,6 +255,7 @@ function source_d() {
                 keys_tmp+=("$key")
             done
             if [[ $debug -ge 2 ]]; then
+                # shellcheck disable=SC2207
                 dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${keys[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${keys_tmp[@]}" | LC_ALL=C sort)))
 		if [[ ${#dropped[@]} -ne 0 ]]; then
                     debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[*]}"
@@ -272,9 +275,11 @@ function source_d() {
         for key in "${keys[@]}"; do
             [[ $debug -ge 2 ]] && debug_echo "    - Number of files before: ${#source_d_files[@]}"
 	    for op in EQUAL NOT_EQUAL; do
+                # shellcheck disable=SC2207
                 source_d_files_tmp=($(startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
                 if [[ $debug -ge 2 ]]; then
                     eval value="\$$key"
+                    # shellcheck disable=SC2207
                     dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${source_d_files[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${source_d_files_tmp[@]}" | LC_ALL=C sort)))
                     if [[ ${#dropped[@]} -eq 0 ]]; then
                         debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
@@ -282,6 +287,7 @@ function source_d() {
                         debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files (\"${dropped[*]}\")"
                     fi
                 fi
+                # shellcheck disable=SC2206
                 source_d_files=(${source_d_files_tmp[@]})
     	    
                 [[ $debug -ge 2 ]] && debug_echo "    - Number of files after: ${#source_d_files[@]}"

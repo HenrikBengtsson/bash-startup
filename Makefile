@@ -1,6 +1,6 @@
 SHELL:=/bin/bash
 
-all: README.md test
+all: README.md test check
 
 
 .PHONY: check test-summary
