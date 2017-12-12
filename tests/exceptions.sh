@@ -7,6 +7,7 @@ arg_trap=false
 
 echo "./bash-startup ..."
 
+./bash-startup
 value=$?
 echo "Exit code: $value"
 [[ $value -eq 0 ]] && exit 1
