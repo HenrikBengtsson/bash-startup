@@ -5,7 +5,7 @@ test: test-run test-summary
 test-run: tests/*.sh
 	@echo "-------------------------------------------begin"
 	@echo "RUNNING TESTS:"
-	@for ff in $^; do \
+	@for ff in $$(LC_ALL=C printf "%s\n" $^ | sort); do \
 	    printf "* $$ff"; \
 	    echo "Running test: $$ff" > $$ff.log 2>&1; \
 	    $$ff > $$ff.log 2>&1; \

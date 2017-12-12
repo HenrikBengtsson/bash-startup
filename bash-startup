@@ -291,6 +291,8 @@ function source_d() {
     [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ...done"
 
     [[ $debug -ge 1 ]] && debug_echo "Sourcing folder $source_d_path ... done"
+
+    return 0
 } ## source_d()
 
 

@@ -3,21 +3,31 @@ arg_error=false
 arg_trap=false
 . tests/init/load.sh
 
-## Calling as executable instead of source:ing
+echo "Exceptions ..."
 
-echo "./bash-startup ..."
-
-./bash-startup
-value=$?
-echo "Exit code: $value"
-[[ $value -eq 0 ]] && exit 1
-
+echo "- Error: calling ./bash-startup"
 res=$( { ./bash-startup ; } 2>&1 )
 value=$?
-echo "Results: $res"
 echo "Exit code: $value"
+echo "Results: $res"
 [[ $value -eq 0 ]] && exit 1
 
-echo "./bash-startup ... done"
+
+echo "- Error: source_d <no-args>"
+res=$( { source_d ; } 2>&1 )
+value=$?
+echo "Exit code: $value"
+echo "Results: $res"
+[[ $value -eq 0 ]] && exit 1
+
+
+echo "- Error: source_d non-existing-folder"
+res=$( { source_d non-existing-folder; } 2>&1 )
+value=$?
+echo "Exit code: $value"
+echo "Results: $res"
+[[ $value -eq 0 ]] && exit 1
+
+echo "Exceptions ... done"
 
 echo "TEST STATUS: OK"
