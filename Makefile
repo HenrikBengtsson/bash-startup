@@ -1,9 +1,13 @@
 SHELL:=/bin/bash
 
-all: README.md test
+all: README.md test check
 
 
-.PHONY: test-summary
+.PHONY: check test-summary
+
+check:
+	shellcheck bash-startup
+	shellcheck -x tests/*.sh tests/init/*.sh
 
 test: test-run test-summary
 

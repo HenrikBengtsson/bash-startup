@@ -1,6 +1,13 @@
 bash-startup
 ============
 
+Version: 0.2.1 [2017-12-12]
+ 
+SOFTWARE QUALITY:
+
+ o Added shellcheck tests ('make check'), which also run on Travis CI.
+ 
+
 Version: 0.2.0 [2017-12-11]
 
 NEW FEATURES:

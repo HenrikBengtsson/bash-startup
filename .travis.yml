@@ -1,3 +1,11 @@
 language: bash
-script: make test
+
+before_script:
+  - bash --version
+  - shellcheck --version
+ 
+script:
+  - make test
+  - make check
+
    

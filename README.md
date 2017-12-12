@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/HenrikBengtsson/bash-startup.svg?branch=develop)](https://travis-ci.org/HenrikBengtsson/bash-startup)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bed069f5d96b4e2ea2b3ab1a96b4b784)](https://www.codacy.com/app/HenrikBengtsson/bash-startup?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HenrikBengtsson/bash-startup&amp;utm_campaign=Badge_Grade)
 
 # bash-startup - Bash Startup Utility Functions
 
@@ -60,8 +61,6 @@ folder separators (/).  The following key-value rules are supported:
  - a=x%OR%y%OR%z     keep if value of 'a' is 'x', 'y', or 'z'
  - a!=x              keep if value of 'a' is not 'x'
  - a!=x%OR%y%OR%z    keep if value of 'a' is neither 'x', 'y', nor 'z'
- - a%HAS%x           keep if value of 'a' contains 'x'
- - a%HAS%x%OR%y%OR%z keep if value of 'a' contains 'x', 'y', or 'z'
 
 where key 'a' is any environment variable or one of the following
 predefined variables:
@@ -87,8 +86,9 @@ STARTUP_DEBUG=1.  To perform a dry run set STARTUP_DRYRUN=1.
 If calling bash_startup(), these may be setup (temporarily) by using
 options --debug and --dryrun, respectively.
 
-Version: 0.2.0
+Version: 0.2.0-9000
 Copyright: Henrik Bengtsson (2017)
 License: GPL (>= 3.0)
 Source: https://github.com/HenrikBengtsson/bash-startup
+
 ```
