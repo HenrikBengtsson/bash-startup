@@ -142,7 +142,7 @@ function startup_version() {
 ## Keeps track of processing times
 STARTUP_START_TIME=$(($(date +%s%N)/1000000))
 function startup_duration() {
-    local d=$(($(($(date +%s%N)/1000000)) - $STARTUP_START_TIME))
+    local d=$(($(($(date +%s%N)/1000000)) - STARTUP_START_TIME))
     d=$(echo 000$d | sed -E 's/([0-9]{3})$/.\1/' | sed -E 's/^0*([0-9])/\1/')
     echo "$d"
 }
