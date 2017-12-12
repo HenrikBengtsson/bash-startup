@@ -99,8 +99,8 @@ function color_echo() {
     local color=$1
     shift
     if [[ -z $color_echo_supported ]]; then
-	color_echo_supported=false
-	which tput > /dev/null && color_echo_supported=true
+        color_echo_supported=false
+        which tput > /dev/null && color_echo_supported=true
     fi
     if $color_echo_supported; then
         tput setaf "$color"
@@ -168,22 +168,22 @@ function startup_filter_by_envvar() {
     ## This requires negative-lookahead regular expression, which in turn
     ## requires an PCRE-enabled grep, hence the 'grep --perl-regexp' call.
     if [[ $op == EQUAL ]]; then
-	## Match strings with $key=$value-pattern that does _not_
-	## have the correct $value-pattern
+        ## Match strings with $key=$value-pattern that does _not_
+        ## have the correct $value-pattern
         local neq='!'
-	local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
+        local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
         local pattern="$key=(?$neq($value_pattern))"
-	## Return the complementary of the above match
+        ## Return the complementary of the above match
         printf "%s\\n" "$@" | grep --perl-regexp -v "$pattern"
     elif [[ $op == NOT_EQUAL ]]; then
-	## Match strings with $key!=$value-pattern that _does_
-	## have the correct $value-pattern
-	local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
+        ## Match strings with $key!=$value-pattern that _does_
+        ## have the correct $value-pattern
+        local value_pattern="$value|[^,=!/]+%OR%$value)([.,/]|=|!=|%OR%.*|$"
         local pattern="$key!=(?=($value_pattern))"
-	## Return the complementary of the above match
+        ## Return the complementary of the above match
         printf "%s\\n" "$@" | grep --perl-regexp -v "$pattern"
     else
-#	warn_echo "Ignoring non-supported filter operator: $op"
+#        warn_echo "Ignoring non-supported filter operator: $op"
         printf "%s\\n" "$@"
     fi
 }
@@ -214,9 +214,9 @@ function source_d() {
 
     local debug=$STARTUP_DEBUG
     if [[ $debug = false ]]; then
-	debug=0
+        debug=0
     elif [[ $debug = true ]]; then
-	debug=1
+        debug=1
     fi
     
     local prefix=
@@ -257,24 +257,24 @@ function source_d() {
             if [[ $debug -ge 2 ]]; then
                 # shellcheck disable=SC2207
                 dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${keys[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${keys_tmp[@]}" | LC_ALL=C sort)))
-		if [[ ${#dropped[@]} -ne 0 ]]; then
+                if [[ ${#dropped[@]} -ne 0 ]]; then
                     debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[*]}"
-		fi
-	    fi
+                fi
+            fi
             keys=("${keys_tmp[@]}")
-	fi
+        fi
         if [[ $debug -ge 2 ]]; then
             debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[*]}"
             debug_echo "  + Predefined keys: interactive=$interactive"
         fi
 
-	
+        
         ## Filter files
         [[ $debug -ge 2 ]] && debug_echo "  + Number of files before: ${#source_d_files[@]}"
         local source_d_files_tmp=()
         for key in "${keys[@]}"; do
             [[ $debug -ge 2 ]] && debug_echo "    - Number of files before: ${#source_d_files[@]}"
-	    for op in EQUAL NOT_EQUAL; do
+            for op in EQUAL NOT_EQUAL; do
                 # shellcheck disable=SC2207
                 source_d_files_tmp=($(startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
                 if [[ $debug -ge 2 ]]; then
@@ -289,9 +289,9 @@ function source_d() {
                 fi
                 # shellcheck disable=SC2206
                 source_d_files=(${source_d_files_tmp[@]})
-    	    
+                
                 [[ $debug -ge 2 ]] && debug_echo "    - Number of files after: ${#source_d_files[@]}"
-	    done
+            done
         done
         
         [[ $debug -ge 2 ]] && debug_echo "  + Number of files after: ${#source_d_files[@]}"
@@ -342,7 +342,7 @@ function bash_startup() {
         elif [[ "$1" == "--dryrun" ]]; then
             STARTUP_DRYRUN=true
         elif [[ $1 == "--emptykeys" ]]; then
-	    STARTUP_KEEP_EMPTY_KEYS=true
+            STARTUP_KEEP_EMPTY_KEYS=true
         elif [[ $1 == "--strict" ]]; then
             STARTUP_ON_ERROR=error
         elif [[ $1 == "--warn" ]]; then
@@ -366,10 +366,10 @@ function bash_startup() {
     
     if [[ $action == help ]]; then
         startup_help "${BASH_SOURCE[0]}"
-	return 0
+        return 0
     elif [[ $action == version ]]; then
         startup_version "${BASH_SOURCE[0]}"
-	return 0
+        return 0
     else
         [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[*]}"
         for dir in "${dirs[@]}"; do
