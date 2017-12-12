@@ -13,6 +13,8 @@ arg_trace=
 . bash-startup
 
 debug=false
+export STARTUP_DEBUG=
+export STARTUP_DRYRUN=
 
 function error() {
     >&2 echo "ERROR: $*"

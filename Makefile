@@ -15,6 +15,13 @@ test-run: tests/*.sh
 
 test-summary:
 	@echo "-------------------------------------------begin"
-	@echo "FAILED TESTS:"
-	@grep -c -F "TEST STATUS: OK" tests/*.sh.log | grep -F ":0" | sed 's/.log:0//'
+	@failed=$$(grep -c -F "TEST STATUS: OK" tests/*.sh.log | grep -F ":0" | sed 's/.log:0//'); \
+	if test -n "$$failed"; then \
+	    echo "FAILED TESTS:"; \
+	    echo "$$failed"; \
+	    echo "TEST OUTPUT:"; \
+	    for ff in $$failed; do echo "TEST $$ff:"; cat $$ff.log; done; \
+	else \
+	    echo "PASSED ALL TESTS"; \
+	fi
 	@echo "---------------------------------------------end"

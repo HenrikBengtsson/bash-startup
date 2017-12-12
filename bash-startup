@@ -93,25 +93,38 @@ function msg_echo() {
     >&2 echo "$*"
 }
 
+color_echo_supported=
+
+function color_echo() {
+    local color=$1
+    shift
+    if [[ -z $color_echo_supported ]]; then
+        which tput > /dev/null
+	color_echo_supported=false
+	[[ $? -eq 0 ]] && color_echo_supported=true
+    fi
+    if $color_echo_supported; then
+        tput setaf $color
+        echo "$*"
+        tput sgr0
+    else
+        echo "$*"
+    fi
+}
+
 ## Usage: debug_echo <msg>
 function debug_echo() {
-    tput setaf 8 2> /dev/null ## gray
-    >&2 echo "$(startup_duration)s: $*"
-    tput sgr0 2> /dev/null    ## reset
+    >&2 color_echo 8 "$(startup_duration)s: $*"  ## gray
 }
 
 ## Usage: warn_echo <msg>
 function warn_echo() {
-    tput setaf 3 2> /dev/null ## yellow
-    >&2 echo "WARNING: $*"
-    tput sgr0 2> /dev/null    ## reset
+    >&2 color_echo 3 "WARNING: $*"  ## yellow
 }
 
 ## Usage: error_echo <msg>
 function error_echo() {
-    tput setaf 1 2> /dev/null ## red
-    >&2 echo "ERROR: $*"
-    tput sgr0 2> /dev/null    ## reset
+    >&2 color_echo 1 "ERROR: $*"  ## red
 }
 
 ## Display the help
