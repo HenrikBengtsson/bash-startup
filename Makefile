@@ -3,9 +3,9 @@ SHELL:=/bin/bash
 all: README.md test
 
 
-.PHONY: lint test-summary
+.PHONY: check test-summary
 
-lint:
+check:
 	shellcheck bash-startup
 
 test: test-run test-summary
