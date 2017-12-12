@@ -345,8 +345,10 @@ function bash_startup() {
     
     if [[ $action == help ]]; then
         startup_help $BASH_SOURCE
+	return 0
     elif [[ $action == version ]]; then
         startup_version $BASH_SOURCE
+	return 0
     else
         [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[@]}"
         for dir in ${dirs[@]}; do
@@ -372,4 +374,8 @@ fi
 ## Process command-line arguments, if any
 if [[ $# -gt 0 ]]; then
     bash_startup $*
+    return $?
 fi
+
+return 0
+
