@@ -19,3 +19,5 @@ res=$(. bash-startup --version)
 echo "Version: $res"
 [[ -z $res ]] && exit 1
 echo "bash-startup --version ... done"
+
+echo "TEST STATUS: OK"

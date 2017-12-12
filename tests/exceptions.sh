@@ -16,3 +16,5 @@ echo "Exit code: $value"
 [[ $value -eq 0 ]] && exit 1
 
 echo "./bash-startup ... done"
+
+echo "TEST STATUS: OK"
