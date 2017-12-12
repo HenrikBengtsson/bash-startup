@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#! /usr/bin/env bash
 ### Bash Startup Utility Functions
 ###
 ### This script defines utility functions for the Bash startup sequence,
