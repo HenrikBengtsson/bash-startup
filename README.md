@@ -61,8 +61,6 @@ folder separators (/).  The following key-value rules are supported:
  - a=x%OR%y%OR%z     keep if value of 'a' is 'x', 'y', or 'z'
  - a!=x              keep if value of 'a' is not 'x'
  - a!=x%OR%y%OR%z    keep if value of 'a' is neither 'x', 'y', nor 'z'
- - a%HAS%x           keep if value of 'a' contains 'x'
- - a%HAS%x%OR%y%OR%z keep if value of 'a' contains 'x', 'y', or 'z'
 
 where key 'a' is any environment variable or one of the following
 predefined variables:
