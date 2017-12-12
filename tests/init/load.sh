@@ -1,3 +1,5 @@
+#! /bin/env bash
+
 ## Stop on error and trace errors
 if [[ $arg_error != false ]]; then
     set -o errexit
@@ -8,7 +10,7 @@ if [[ $arg_trap != false ]]; then
     set -o errtrace
     trap '>&2 echo "TEST ERROR: $0 (exit code $?)"; exit $?' ERR
 fi
-arg_trace=
+arg_trap=
 
 . bash-startup
 
@@ -26,7 +28,7 @@ function expect() {
     local args2=()
     local test=
     local state=1
-    while [[ $# > 0 ]]; do
+    while [[ $# -gt 0 ]]; do
 	if [[ $1 =~ ^%[a-z]+%$ ]]; then
 	    test=${1//%/}
 	    state=2
@@ -38,20 +40,20 @@ function expect() {
 	shift
     done
  
-    local prefix="expect_$test('${args1[@]}', '${args2[@]}')"
+    local prefix="expect_$test('${args1[*]}', '${args2[*]}')"
 
     if $debug; then
         echo "$prefix ..."
         echo "args1: (n=${#args1[@]})"
-        for t in ${args1[@]}; do echo "- '$t'"; done
+        for tt in "${args1[@]}"; do echo "- '$tt'"; done
         echo "args2: (n=${#args2[@]})"
-        for t in ${args2[@]}; do echo "- '$t'"; done
+        for tt in "${args2[@]}"; do echo "- '$tt'"; done
     fi
     
     if [[ $test = equal ]]; then
 	if [[ ${#args1[@]} -ne ${#args2[@]} ]]; then
 	    error "$prefix: different lengths (${#args1[@]} != ${#args2[@]})"
-	elif [[ ${args1[@]} != ${args2[@]} ]]; then
+	elif [[ ${args1[*]} != "${args2[*]}" ]]; then
 	    error "$prefix: strings differ"
 	fi
     elif [[ $test = empty ]]; then

@@ -7,6 +7,7 @@ all: README.md test check
 
 check:
 	shellcheck bash-startup
+	shellcheck -x tests/*.sh tests/init/*.sh
 
 test: test-run test-summary
 
