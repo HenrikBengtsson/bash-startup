@@ -5,6 +5,10 @@ Version: 0.2.0-9000 [2017-12-11]
 
  o ...
  
+SOFTWARE QUALITY:
+
+ o Added shellcheck tests ('make check'), which also run on Travis CI.
+ 
 
 Version: 0.2.0 [2017-12-11]
 
