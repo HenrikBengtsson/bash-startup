@@ -305,6 +305,7 @@ function source_d() {
     for ff in "${source_d_files[@]}"; do
        ( [[ $debug -ge 1 ]] || $dryrun ) && debug_echo "$prefix - $ff"
         $dryrun && continue
+        # shellcheck disable=SC1090
         source "$ff"
     done
     [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ...done"

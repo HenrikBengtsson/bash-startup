@@ -6,7 +6,7 @@ all: README.md test check
 .PHONY: check test-summary
 
 check:
-	shellcheck --exclude=SC1090,SC1091 bash-startup
+	shellcheck bash-startup
 
 test: test-run test-summary
 
