@@ -1,7 +1,7 @@
 bash-startup
 ============
 
-Version: 0.1.0-9000 [2017-12-10]
+Version: 0.21.0 [2017-12-11]
 
 NEW FEATURES:
 
@@ -9,7 +9,11 @@ NEW FEATURES:
    is any environment variable or one of the predefined built-in keys,
    i.e. 'interactive'.  Note that it will only filter on the key if its
    value is non-empty.
-   
+
+SOFTWARE QUALITY:
+
+ o Added unit tests ('make test'), which run on Travis CI.
+
 
 Version: 0.1.0 [2017-12-10]
 
