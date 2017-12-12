@@ -255,13 +255,13 @@ function source_d() {
             if [[ $debug -ge 2 ]]; then
                 dropped=($(export LC_ALL=C; comm --nocheck-order -23 <(printf "%s\n" "${keys[@]}" | sort) <(printf "%s\n" "${keys_tmp[@]}" | sort)))
 		if [[ ${#dropped[@]} -ne 0 ]]; then
-                    debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[@]}"
+                    debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[*]}"
 		fi
 	    fi
             keys=(${keys_tmp[@]})
 	fi
         if [[ $debug -ge 2 ]]; then
-            debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[@]}"
+            debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[*]}"
             debug_echo "  + Predefined keys: interactive=$interactive"
         fi
 
@@ -279,7 +279,7 @@ function source_d() {
                     if [[ ${#dropped[@]} -eq 0 ]]; then
                         debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
                     else
-                        debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[@]}")"
+                        debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files ("${dropped[*]}")"
                     fi
                 fi
                 source_d_files=(${source_d_files_tmp[@]})
@@ -365,7 +365,7 @@ function bash_startup() {
         startup_version "$BASH_SOURCE"
 	return 0
     else
-        [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[@]}"
+        [[ $debug -ge 2 ]] && debug_echo "Processing ${#dirs[@]} folders: ${dirs[*]}"
         for dir in "${dirs[@]}"; do
            source_d "$dir"
         done
