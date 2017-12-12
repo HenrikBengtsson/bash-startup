@@ -3,7 +3,10 @@ SHELL:=/bin/bash
 all: README.md test
 
 
-.PHONY: test-summary
+.PHONY: lint test-summary
+
+lint:
+	shellcheck bash-startup
 
 test: test-run test-summary
 
