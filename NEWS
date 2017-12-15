@@ -1,9 +1,7 @@
 bash-startup
 ============
 
-Version: 0.2.1-9000 [2017-12-15]
-
- o ...
+Version: 0.2.2 [2017-12-15]
 
 BUG FIXES:
 
@@ -16,7 +14,11 @@ BUG FIXES:
  
  o key=value pairs did not acknowledge periods (.), e.g. 'abc.def=123' would
    be parsed as key='abc.def' not as 'def'.
-  
+
+SOFTWARE QUALITY:
+
+ o Added more unit tests.
+
 
 Version: 0.2.1 [2017-12-12]
  
