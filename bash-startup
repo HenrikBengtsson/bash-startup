@@ -111,9 +111,36 @@ function color_echo() {
     fi
 }
 
+function color_printf() {
+    local color=$1
+    shift
+    local fmt=$1
+    shift
+    if [[ -z $color_echo_supported ]]; then
+        color_echo_supported=false
+        which tput > /dev/null && color_echo_supported=true
+    fi
+    if $color_echo_supported; then
+        tput setaf "$color"
+	# shellcheck disable=SC2059
+        printf "$fmt" "$@"
+        tput sgr0
+    else
+	# shellcheck disable=SC2059
+        printf "$fmt" "$@"
+    fi
+}
+
 ## Usage: debug_echo <msg>
 function debug_echo() {
     >&2 color_echo 8 "$(startup_duration)s: $*"  ## gray
+}
+
+## Usage: debug_printf <fmt> ...
+function debug_printf() {
+    local fmt=$1
+    shift
+    >&2 color_printf 8 "$(startup_duration)s: $fmt" "$@" ## gray
 }
 
 ## Usage: warn_echo <msg>
@@ -271,7 +298,14 @@ function source_d() {
 
         
         ## Filter files
-        [[ $debug -ge 2 ]] && debug_echo "  + Number of files before: ${#source_d_files[@]}"
+        if [[ $debug -ge 2 ]]; then
+            debug_echo "  + Number of files before: ${#source_d_files[@]}"
+            local ii=
+            for ii in "${!source_d_files[@]}"; do
+               debug_printf "    %2d. %s\\n" "$((ii + 1))" "${source_d_files[$ii]}"
+            done
+	fi
+	
         local source_d_files_tmp=()
         for key in "${keys[@]}"; do
             [[ $debug -ge 2 ]] && debug_echo "    - Number of files before: ${#source_d_files[@]}"
@@ -302,12 +336,12 @@ function source_d() {
     
     ## Source remaining files
     [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ..."
-    local ff=
-    for ff in "${source_d_files[@]}"; do
-       ( [[ $debug -ge 1 ]] || $dryrun ) && debug_echo "$prefix - $ff"
+    local ii=
+    for ii in "${!source_d_files[@]}"; do
+        ( [[ $debug -ge 1 ]] || $dryrun ) && debug_printf "$prefix  %2d. %s\\n" "$((ii + 1))" "${source_d_files[$ii]}"
         $dryrun && continue
         # shellcheck disable=SC1090
-        source "$ff"
+        source "${source_d_files[$ii]}"
     done
     [[ $debug -ge 1 ]] && debug_echo "- Sourcing ${#source_d_files[@]} files ...done"
 
