@@ -93,16 +93,13 @@ function msg_echo() {
     >&2 echo "$*"
 }
 
-color_echo_supported=
+STARTUP_COLOR_SUPPORTED=false
+tput sgr0 2> /dev/null && STARTUP_COLOR_SUPPORTED=true
 
 function color_echo() {
     local color=$1
     shift
-    if [[ -z $color_echo_supported ]]; then
-        color_echo_supported=false
-        which tput > /dev/null && color_echo_supported=true
-    fi
-    if $color_echo_supported; then
+    if $STARTUP_COLOR_SUPPORTED; then
         tput setaf "$color"
         echo "$*"
         tput sgr0
@@ -116,11 +113,7 @@ function color_printf() {
     shift
     local fmt=$1
     shift
-    if [[ -z $color_echo_supported ]]; then
-        color_echo_supported=false
-        which tput > /dev/null && color_echo_supported=true
-    fi
-    if $color_echo_supported; then
+    if $STARTUP_COLOR_SUPPORTED; then
         tput setaf "$color"
 	# shellcheck disable=SC2059
         printf "$fmt" "$@"

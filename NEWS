@@ -1,12 +1,16 @@
 bash-startup
 ============
 
-Version: 0.2.1-9000 [2017-12-14]
+Version: 0.2.1-9000 [2017-12-15]
 
  o ...
 
 BUG FIXES:
 
+ o Output functions produced 'tput: No value for $TERM and no -T specified'
+   if TERM was not set.  Now 'tput' (for colored output) is only used if
+   supported.
+ 
  o key=value pairs did not acknowledge periods (.), e.g. 'abc.def=123' would
    be parsed as key='abc.def' not as 'def'.
   
