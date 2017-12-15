@@ -15,8 +15,16 @@ declare -a files=(
 )
 
 echo "Files (n=${#files}):"
-printf "* '%s'\\n" "${files[@]}"
+printf " * '%s'\\n" "${files[@]}"
 expect "${files[@]}" %nonempty%
+
+echo "startup_find_all_keys(n=${#files}):"
+# shellcheck disable=SC2207
+keys=($(startup_find_all_keys "${files[@]}"))
+printf " * '%s'\\n" "${keys[@]}"
+expect "${keys[@]}" %nonempty%
+truth=("a" "b" "c")
+expect "${keys[@]}" %equal% "${truth[@]}"
 
 
 printf "Filter (nonexisting): "

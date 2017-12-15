@@ -7,6 +7,9 @@ Version: 0.2.1-9000 [2017-12-15]
 
 BUG FIXES:
 
+ o startup_find_all_keys() would incorrectly identify filename extensions
+   as keys.
+   
  o Output functions produced 'tput: No value for $TERM and no -T specified'
    if TERM was not set.  Now 'tput' (for colored output) is only used if
    supported.

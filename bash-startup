@@ -169,7 +169,7 @@ function startup_duration() {
 function startup_find_all_keys() {
     ## Identify all unique <key>:s in string with <key>=<value>, which are
     ## separated by path separators ('/'), commas (','), and periods ('.').
-    echo "$*" | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/[.,/]/\n/g' | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/(=|!=).*//g' | LC_ALL=C sort -u
+    printf "%s\\n" "$@" | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/[.].*$//' | sed -E 's/[.,/]/\n/g' | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/(=|!=).*//g' | LC_ALL=C sort -u
 }
 
 function startup_filter_by_envvar() {
