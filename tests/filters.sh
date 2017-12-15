@@ -6,18 +6,25 @@ declare -a files=(
     "a=11/b/c.sh"
     "a/b=11/c.sh"
     "a/b/c=11.sh"
+    
+    "zzz.a=11/b/c.sh"
+    "a/zzz.b=11/c.sh"
+    "a/b/zzz.c=11.sh"
 
     "a!=11/b/c.sh"
     "a/b!=11/c.sh"
     "a/b/c!=11.sh"
 
+    "zzz.a!=11/b/c.sh"
+    "a/zzz.b!=11/c.sh"
+    "a/b/zzz.c!=11.sh"
+
     "a/b/c"
 )
 
 echo "Files (n=${#files}):"
-printf "* '%s'\\n" "${files[@]}"
+printf " * '%s'\\n" "${files[@]}"
 expect "${files[@]}" %nonempty%
-
 
 printf "Filter (nonexisting): "
 # shellcheck disable=SC2207
@@ -27,7 +34,14 @@ expect "${files2[@]}" %equal% "${files[@]}"
 echo "OK"
 
 
-keys=("a" "b" "c")
+echo "startup_find_all_keys(n=${#files}):"
+# shellcheck disable=SC2207
+keys=($(startup_find_all_keys "${files[@]}"))
+printf " * '%s'\\n" "${keys[@]}"
+expect "${keys[@]}" %nonempty%
+truth=("a" "b" "c")
+expect "${keys[@]}" %equal% "${truth[@]}"
+
 for ii in "${!keys[@]}"; do
     key="${keys[$ii]}"
 
@@ -41,9 +55,10 @@ for ii in "${!keys[@]}"; do
     echo "OK"
 
     value=1
-    jj=$ii
     # shellcheck disable=SC2206
-    truth=(${files[@]/${files[$jj]}})
+    truth=(${files[@]})
+    unset truth[$((ii + 3))]
+    unset truth[$((ii))]
     eval "$key=$value"
     printf "Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
@@ -60,9 +75,10 @@ for ii in "${!keys[@]}"; do
     echo "OK"
 
     value=11
-    jj=$((ii + 3))
     # shellcheck disable=SC2206
-    truth=(${files[@]/${files[$jj]}})
+    truth=(${files[@]})
+    unset truth[$((ii + 9))]
+    unset truth[$((ii + 6))]
     eval "$key=$value"
     printf "Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207

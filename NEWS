@@ -1,6 +1,25 @@
 bash-startup
 ============
 
+Version: 0.2.2 [2017-12-15]
+
+BUG FIXES:
+
+ o startup_find_all_keys() would incorrectly identify filename extensions
+   as keys.
+   
+ o Output functions produced 'tput: No value for $TERM and no -T specified'
+   if TERM was not set.  Now 'tput' (for colored output) is only used if
+   supported.
+ 
+ o key=value pairs did not acknowledge periods (.), e.g. 'abc.def=123' would
+   be parsed as key='abc.def' not as 'def'.
+
+SOFTWARE QUALITY:
+
+ o Added more unit tests.
+
+
 Version: 0.2.1 [2017-12-12]
  
 SOFTWARE QUALITY:

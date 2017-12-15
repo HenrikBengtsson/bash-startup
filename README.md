@@ -8,7 +8,7 @@
 
 ## Usage
 ```sh
-Bash Startup Utility Functions
+(B[mBash Startup Utility Functions
 
 This script defines utility functions for the Bash startup sequence,
 specificially, source_d() sources all _executable_ scripts in a set
@@ -86,7 +86,7 @@ STARTUP_DEBUG=1.  To perform a dry run set STARTUP_DRYRUN=1.
 If calling bash_startup(), these may be setup (temporarily) by using
 options --debug and --dryrun, respectively.
 
-Version: 0.2.0-9000
+Version: 0.2.2
 Copyright: Henrik Bengtsson (2017)
 License: GPL (>= 3.0)
 Source: https://github.com/HenrikBengtsson/bash-startup
