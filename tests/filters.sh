@@ -55,9 +55,10 @@ for ii in "${!keys[@]}"; do
     echo "OK"
 
     value=1
+    # shellcheck disable=SC2206
     truth=(${files[@]})
     unset truth[$((ii + 3))]
-    unset truth[$ii]
+    unset truth[$((ii))]
     eval "$key=$value"
     printf "Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
@@ -74,10 +75,10 @@ for ii in "${!keys[@]}"; do
     echo "OK"
 
     value=11
+    # shellcheck disable=SC2206
     truth=(${files[@]})
     unset truth[$((ii + 9))]
     unset truth[$((ii + 6))]
-    jj=$((ii + 4))
     eval "$key=$value"
     printf "Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
