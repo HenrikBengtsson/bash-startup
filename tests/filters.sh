@@ -41,6 +41,10 @@ declare -a files=(
     "a/zzz.b!=11%OR%22/c.sh"
     "a/b/zzz.c!=11%OR%22.sh"
 
+    "zzz.a!=11%OR%22%OR%33/b/c.sh"
+    "a/zzz.b!=11%OR%22%OR%33/c.sh"
+    "a/b/zzz.c!=11%OR%22%OR%33.sh"
+
     ## Unaffected
     "a/b/c"
 )
@@ -77,6 +81,35 @@ for ii in "${!keys[@]}"; do
     expect "${files2[@]}" %equal% "${files[@]}"
     echo "OK"
 
+    value=22
+    # shellcheck disable=SC2206
+    truth=(${files[@]})
+    unset truth[$((ii + 6))]
+    unset truth[$((ii + 3))]
+    unset truth[$((ii + 0))]
+    eval "$key=$value"
+    printf " (a) Filter (%s=%s EQUAL): " "$key" "$value"
+    # shellcheck disable=SC2207
+    files2=($(startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
+    expect "${files2[@]}" %nonempty%
+    expect "${files2[@]}" %equal% "${truth[@]}"
+    echo "OK"
+
+    value=33
+    # shellcheck disable=SC2206
+    truth=(${files[@]})
+    unset truth[$((ii + 9))]
+    unset truth[$((ii + 6))]
+    unset truth[$((ii + 3))]
+    unset truth[$((ii + 0))]
+    eval "$key=$value"
+    printf " (a) Filter (%s=%s EQUAL): " "$key" "$value"
+    # shellcheck disable=SC2207
+    files2=($(startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
+    expect "${files2[@]}" %nonempty%
+    expect "${files2[@]}" %equal% "${truth[@]}"
+    echo "OK"
+    
     value=1
     # shellcheck disable=SC2206
     truth=(${files[@]})
@@ -84,7 +117,7 @@ for ii in "${!keys[@]}"; do
     unset truth[$((ii + 9))]
     unset truth[$((ii + 6))]
     unset truth[$((ii + 3))]
-    unset truth[$((ii))]
+    unset truth[$((ii + 0))]
     eval "$key=$value"
     printf " (b) Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
@@ -103,10 +136,34 @@ for ii in "${!keys[@]}"; do
     value=11
     # shellcheck disable=SC2206
     truth=(${files[@]})
+    unset truth[$((ii + 27))]
     unset truth[$((ii + 24))]
     unset truth[$((ii + 21))]
     unset truth[$((ii + 18))]
     unset truth[$((ii + 15))]
+    eval "$key=$value"
+    printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
+    # shellcheck disable=SC2207
+    files2=($(startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
+    expect "${files2[@]}" %equal% "${truth[@]}"
+    echo "OK"
+
+    value=22
+    # shellcheck disable=SC2206
+    truth=(${files[@]})
+    unset truth[$((ii + 27))]
+    unset truth[$((ii + 24))]
+    eval "$key=$value"
+    printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
+    # shellcheck disable=SC2207
+    files2=($(startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
+    expect "${files2[@]}" %equal% "${truth[@]}"
+    echo "OK"
+
+    value=33
+    # shellcheck disable=SC2206
+    truth=(${files[@]})
+    unset truth[$((ii + 27))]
     eval "$key=$value"
     printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
