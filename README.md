@@ -67,14 +67,14 @@ predefined variables:
 
  - 'interactive'  'true' if env var 'PS1' is set, otherwise 'false'
 
-A value 'x' must _not_ contain a comma (,), a folder separator (/),
-or any of the logical operators (%OR%).
+A value 'x' must _not_ contain a folder separator (/), a period (.),
+a comma (,), or any of the logical operators (%OR%).
 
 If a pathname (path + filename) has multiple key-value pairs, then all
 key-value rules must be fulfilled in order for the pathname not to be 
 dropped by the filtering.  For example, file
 
- ~/.bashrc.d/interactive=true/USER!=alice%OR%bob/hello,PAPERSIZE=a4.sh
+ ~/.bashrc.d/interactive=true/z.USER!=alice%OR%bob/hello,PAPERSIZE=a4.sh
 
 will only be used in an interactive Bash session, if the USER is neither
 'alice' nor 'bob', and the PAPERSIZE is set to 'a4'.
