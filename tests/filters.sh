@@ -20,6 +20,10 @@ declare -a files=(
     "a/zzz.b=11%OR%22/c.sh"
     "a/b/zzz.c=11%OR%22.sh"
 
+    "zzz.a=11%OR%22%OR%33/b/c.sh"
+    "a/zzz.b=11%OR%22%OR%33/c.sh"
+    "a/b/zzz.c=11%OR%22%OR%33.sh"
+
     ## Only affected by NOT_EQUAL
     "a!=11/b/c.sh"
     "a/b!=11/c.sh"
@@ -76,6 +80,7 @@ for ii in "${!keys[@]}"; do
     value=1
     # shellcheck disable=SC2206
     truth=(${files[@]})
+    unset truth[$((ii + 12))]
     unset truth[$((ii + 9))]
     unset truth[$((ii + 6))]
     unset truth[$((ii + 3))]
@@ -98,10 +103,10 @@ for ii in "${!keys[@]}"; do
     value=11
     # shellcheck disable=SC2206
     truth=(${files[@]})
+    unset truth[$((ii + 24))]
     unset truth[$((ii + 21))]
     unset truth[$((ii + 18))]
     unset truth[$((ii + 15))]
-    unset truth[$((ii + 12))]
     eval "$key=$value"
     printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
