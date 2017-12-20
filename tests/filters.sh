@@ -55,15 +55,15 @@ expect "${files[@]}" %nonempty%
 
 printf "Filter (nonexisting): "
 # shellcheck disable=SC2207
-files2=($(startup_filter_by_envvar EQUAL nonexisting "${files[@]}"))
+files2=($(_startup_filter_by_envvar EQUAL nonexisting "${files[@]}"))
 expect "${files2[@]}" %nonempty%
 expect "${files2[@]}" %equal% "${files[@]}"
 echo "OK"
 
 
-echo "startup_find_all_keys(n=${#files}):"
+echo "_startup_find_all_keys(n=${#files}):"
 # shellcheck disable=SC2207
-keys=($(startup_find_all_keys "${files[@]}"))
+keys=($(_startup_find_all_keys "${files[@]}"))
 printf " * '%s'\\n" "${keys[@]}"
 expect "${keys[@]}" %nonempty%
 truth=("a" "b" "c")
@@ -76,7 +76,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (a) Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %nonempty%
     expect "${files2[@]}" %equal% "${files[@]}"
     echo "OK"
@@ -90,7 +90,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (a) Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %nonempty%
     expect "${files2[@]}" %equal% "${truth[@]}"
     echo "OK"
@@ -105,7 +105,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (a) Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %nonempty%
     expect "${files2[@]}" %equal% "${truth[@]}"
     echo "OK"
@@ -121,7 +121,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (b) Filter (%s=%s EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %equal% "${truth[@]}"
     echo "OK"
 
@@ -129,7 +129,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (c) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %equal% "${files[@]}"
     echo "OK"
 
@@ -144,7 +144,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %equal% "${truth[@]}"
     echo "OK"
 
@@ -156,7 +156,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %equal% "${truth[@]}"
     echo "OK"
 
@@ -167,7 +167,7 @@ for ii in "${!keys[@]}"; do
     eval "$key=$value"
     printf " (d) Filter (%s=%s NOT_EQUAL): " "$key" "$value"
     # shellcheck disable=SC2207
-    files2=($(startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
+    files2=($(_startup_filter_by_envvar NOT_EQUAL "$key" "${files[@]}"))
     expect "${files2[@]}" %equal% "${truth[@]}"
     echo "OK"
 done

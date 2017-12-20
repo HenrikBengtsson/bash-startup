@@ -120,13 +120,13 @@ function _startup_color_msgf() {
 }
 
 function _startup_debug() {
-    >&2 _startup_color_msg 8 "$(startup_duration)s: $*"  ## gray
+    >&2 _startup_color_msg 8 "$(_startup_duration)s: $*"  ## gray
 }
 
 function _startup_debugf() {
     local fmt=$1
     shift
-    >&2 _startup_color_msgf 8 "$(startup_duration)s: $fmt" "$@" ## gray
+    >&2 _startup_color_msgf 8 "$(_startup_duration)s: $fmt" "$@" ## gray
 }
 
 function _startup_warn() {
@@ -137,33 +137,31 @@ function _startup_error() {
     >&2 _startup_color_msg 1 "ERROR: $*"  ## red
 }
 
-## Display the help
-function startup_help() {
+function _startup_help() {
     local res=
     res=$(grep -E "^###([ ].*|)$" "$1" | cut -b 5-)
     printf '%s\\n' "${res[@]}"
 }
 
-## Display the version
-function startup_version() {
+function _startup_version() {
     grep -E "^###[ ]+Version: " "$1" | sed -E 's/.*Version:[ ]+//g' | sed 's/ //g'
 }
 
 ## Keeps track of processing times
 STARTUP_START_TIME=$(($(date +%s%N)/1000000))
-function startup_duration() {
+function _startup_duration() {
     local d=$(($(($(date +%s%N)/1000000)) - STARTUP_START_TIME))
     d=$(echo 000$d | sed -E 's/([0-9]{3})$/.\1/' | sed -E 's/^0*([0-9])/\1/')
     echo "$d"
 }
 
-function startup_find_all_keys() {
+function _startup_find_all_keys() {
     ## Identify all unique <key>:s in string with <key>=<value>, which are
     ## separated by path separators ('/'), commas (','), and periods ('.').
     printf "%s\\n" "$@" | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/[.][^.]*$//' | sed -E 's/[.,/]/\n/g' | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/(=|!=).*//g' | LC_ALL=C sort -u
 }
 
-function startup_filter_by_envvar() {
+function _startup_filter_by_envvar() {
     local op=$1
     shift
     local key=$1
@@ -201,7 +199,7 @@ function startup_filter_by_envvar() {
 }
 
 
-function startup_find_all_files() {
+function _startup_find_all_files() {
     find -L "$1" -executable -type f ! -name '*~' ! -name '#*' ! -name '*#' 2> /dev/null | LC_ALL=C sort
 }
 
@@ -246,11 +244,11 @@ function source_d() {
 
     ## Find all files
     # shellcheck disable=SC2207
-    local source_d_files=($(startup_find_all_files "$source_d_path"))
+    local source_d_files=($(_startup_find_all_files "$source_d_path"))
 
     ## Filter on <key>=<value>, ... tags?
     # shellcheck disable=SC2207
-    local keys=($(startup_find_all_keys "${source_d_files[@]}"))
+    local keys=($(_startup_find_all_keys "${source_d_files[@]}"))
     if [[ ${#keys[@]} -gt 0 ]]; then
         [[ $debug -ge 2 ]] && _startup_debug "- Filtering based on ${#keys[@]} keys ..."
 
@@ -295,7 +293,7 @@ function source_d() {
             [[ $debug -ge 2 ]] && _startup_debug "    - Number of files before: ${#source_d_files[@]}"
             for op in EQUAL NOT_EQUAL; do
                 # shellcheck disable=SC2207
-                source_d_files_tmp=($(startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
+                source_d_files_tmp=($(_startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
                 if [[ $debug -ge 2 ]]; then
                     eval value="\$$key"
                     # shellcheck disable=SC2207
@@ -385,10 +383,10 @@ function bash_startup() {
     fi
     
     if [[ $action == help ]]; then
-        startup_help "${BASH_SOURCE[0]}"
+        _startup_help "${BASH_SOURCE[0]}"
         return 0
     elif [[ $action == version ]]; then
-        startup_version "${BASH_SOURCE[0]}"
+        _startup_version "${BASH_SOURCE[0]}"
         return 0
     else
         [[ $debug -ge 2 ]] && _startup_debug "Processing ${#dirs[@]} folders: ${dirs[*]}"
