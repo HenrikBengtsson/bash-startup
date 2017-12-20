@@ -7,9 +7,10 @@
 ### This script is preferrably sourced from ~/.bashrc or similar.
 ###
 ### USAGE:
-### . /path/to/bash-startup [options] folder folder2 ...
-### . /path/to/bash-startup; startup [options] folder folder2 ...
+### . /path/to/bash-startup [options] folder folder2 file ...
+### . /path/to/bash-startup; startup [options] folder folder2 file ...
 ### . /path/to/bash-startup; startup_source_d folder folder2 ...
+### . /path/to/bash-startup; startup_source file
 ###
 ### Options:
 ###  --reset       resets timer when calling startup()
@@ -525,4 +526,3 @@ fi
 _startup_duration_reset
 
 return 0
-
