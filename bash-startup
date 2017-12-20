@@ -161,7 +161,7 @@ function _startup_find_all_keys() {
     printf "%s\\n" "$@" | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/[.][^.]*$//' | sed -E 's/[.,/]/\n/g' | grep -E "([[:alnum:]]+)(=|!=)" | sed -E 's/(=|!=).*//g' | LC_ALL=C sort -u
 }
 
-function _startup_filter_by_envvar() {
+function _startup_filter_by_key() {
     local op=$1
     shift
     local key=$1
@@ -293,7 +293,7 @@ function source_d() {
             [[ $debug -ge 2 ]] && _startup_debug "    - Number of files before: ${#source_d_files[@]}"
             for op in EQUAL NOT_EQUAL; do
                 # shellcheck disable=SC2207
-                source_d_files_tmp=($(_startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
+                source_d_files_tmp=($(_startup_filter_by_key $op "$key" "${source_d_files[@]}"))
                 if [[ $debug -ge 2 ]]; then
                     eval value="\$$key"
                     # shellcheck disable=SC2207
