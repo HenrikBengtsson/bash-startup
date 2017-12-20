@@ -356,7 +356,7 @@ function startup() {
     local action=
     local reset=false
     local debug=0
-    local dirs=()
+    local items=()
    
     # Parse command-line options
     while [[ $# -gt 0 ]]; do
@@ -381,7 +381,7 @@ function startup() {
         elif [[ $1 == "--warn" ]]; then
             STARTUP_ON_ERROR=warn
         else
-            dirs+=("$1")
+            items+=("$1")
         fi
         shift
     done
@@ -407,9 +407,9 @@ function startup() {
         _startup_version "${BASH_SOURCE[0]}"
         return 0
     else
-        [[ $debug -ge 2 ]] && _startup_debug "Processing ${#dirs[@]} folders: ${dirs[*]}"
-        for dir in "${dirs[@]}"; do
-           startup_source_d "$dir"
+        [[ $debug -ge 2 ]] && _startup_debug "Processing ${#items[@]} files or folders: ${items[*]}"
+        for item in "${items[@]}"; do
+           startup_source_d "$item"
         done
     fi
 
