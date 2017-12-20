@@ -15,7 +15,10 @@ NEW FEATURES:
    "private" functions are prefixed with '_startup_'.
 
  o startup() gained option --reset for resetting the timer.
-  
+
+ o startup() gained option --non-x for sourcing also script without the
+   executable flag set.
+
 SOFTWARE QUALITY:
 
  o TESTS: More unit tests.

@@ -22,14 +22,15 @@ USAGE:
 . /path/to/bash-startup; startup_source file
 
 Options:
- --reset       resets timer when calling startup()
+ --non-x      Include also script without executable flag set
+ --reset      resets timer when calling startup()
 
- --help        Display this help
- --version     Display version
+ --help       Display this help
+ --version    Display version
 
- --dryrun      Dry run with output without sourcing anything
- --verbose     Display verbose messages
- --debug       Display debug messages ("more verbose")
+ --dryrun     Dry run with output without sourcing anything
+ --verbose    Display verbose messages
+ --debug      Display debug messages ("more verbose")
 
 
 EXAMPLES:
@@ -93,5 +94,4 @@ Version: 0.2.2-9000
 Copyright: Henrik Bengtsson (2017)
 License: GPL (>= 3.0)
 Source: https://github.com/HenrikBengtsson/bash-startup
-
 ```

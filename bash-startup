@@ -13,14 +13,15 @@
 ### . /path/to/bash-startup; startup_source file
 ###
 ### Options:
-###  --reset       resets timer when calling startup()
+###  --non-x      Include also script without executable flag set
+###  --reset      resets timer when calling startup()
 ###
-###  --help        Display this help
-###  --version     Display version
+###  --help       Display this help
+###  --version    Display version
 ###
-###  --dryrun      Dry run with output without sourcing anything
-###  --verbose     Display verbose messages
-###  --debug       Display debug messages ("more verbose")
+###  --dryrun     Dry run with output without sourcing anything
+###  --verbose    Display verbose messages
+###  --debug      Display debug messages ("more verbose")
 ###
 ###
 ### EXAMPLES:
@@ -296,7 +297,9 @@ function _startup_filter() {
 }
 
 function _startup_find_all_files() {
-    find -L "$1" -executable -type f ! -name '*~' ! -name '#*' ! -name '*#' 2> /dev/null | LC_ALL=C sort
+    opts=
+    ( ! ${STARTUP_ALSO_NON_EXECUTABLE:-false} ) && opts="-executable"
+    find -L "$1" "$opts" -type f ! -name '*~' ! -name '#*' ! -name '*#' 2> /dev/null | LC_ALL=C sort
 }
 
 
@@ -372,7 +375,9 @@ function startup_source() {
             _startup_warn "startup_source: no such file: $source_file"
         fi
         return 1
-    elif [[ ! -x "$source_file" ]]; then
+    fi
+
+    if ! ${STARTUP_ALSO_NON_EXECUTABLE:-false} && [ ! -x "$source_file" ]; then
         if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
             _startup_error "startup_source: file is non-executable: $source_file"
         elif [[ $STARTUP_ON_ERROR == warn ]]; then
@@ -421,6 +426,7 @@ function startup() {
     local org_dryrun=$STARTUP_DRYRUN
     local org_onerror=$STARTUP_ON_ERROR
     local org_emptykeys=$STARTUP_KEEP_EMPTY_KEYS
+    local org_alsononexecutable=$STARTUP_ALSO_NON_EXECUTABLE
 
     local cmdargs=$*
     local action=
@@ -440,6 +446,8 @@ function startup() {
         elif [[ "$1" == "--debug" ]]; then
             STARTUP_DEBUG=2
             debug=2
+        elif [[ "$1" == "--non-x" ]]; then
+            STARTUP_ALSO_NON_EXECUTABLE=true
         elif [[ "$1" == "--reset" ]]; then
             reset=true
         elif [[ "$1" == "--dryrun" ]]; then
@@ -492,6 +500,7 @@ function startup() {
     STARTUP_DRYRUN=$org_dryrun
     STARTUP_ON_ERROR=$org_onerror
     STARTUP_KEEP_EMPTY_KEYS=$org_emptykeys
+    STARTUP_ALSO_NON_EXECUTABLE=$org_alsononexecutable
     
     [[ $debug -ge 2 ]] && _startup_debug "startup() ... done"
 }
