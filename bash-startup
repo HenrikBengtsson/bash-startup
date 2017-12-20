@@ -210,29 +210,9 @@ function _startup_filter_by_key() {
     fi
 }
 
-
-function _startup_find_all_files() {
-    find -L "$1" -executable -type f ! -name '*~' ! -name '#*' ! -name '*#' 2> /dev/null | LC_ALL=C sort
-}
-
-
-## ---------------------------------------------------------------------------
-## Public functions
-## ---------------------------------------------------------------------------
-function startup_source_d() {
-    local source_d_path=$1
-
-    if [[ $# -eq 0 ]]; then
-        _startup_error "startup_source_d: path not specified"
-        return 1
-    elif [[ ! -d "$source_d_path" ]]; then
-        if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
-            _startup_error "startup_source_d: no such path: $source_d_path"
-        elif [[ $STARTUP_ON_ERROR == warn ]]; then
-            _startup_warn "startup_source_d: no such path: $source_d_path"
-        fi
-        return 1
-    fi
+function _startup_filter() {
+    local dropped=
+    local value=
 
     local debug=$STARTUP_DEBUG
     if [[ $debug = false ]]; then
@@ -241,24 +221,6 @@ function startup_source_d() {
         debug=1
     fi
     
-    local prefix=
-    local dryrun=false
-    if [[ -n "$STARTUP_DRYRUN" ]]; then
-        prefix="[DRYRUN] "
-        dryrun=true
-    fi
-
-    ## Temporary variables used below
-    local dropped=
-    local value=
-    
-    [[ $debug -ge 1 ]] && _startup_debug "Sourcing folder $source_d_path ..."
-
-    ## Find all files
-    # shellcheck disable=SC2207
-    local source_d_files=($(_startup_find_all_files "$source_d_path"))
-
-    ## Filter on <key>=<value>, ... tags?
     # shellcheck disable=SC2207
     local keys=($(_startup_find_all_keys "${source_d_files[@]}"))
     if [[ ${#keys[@]} -gt 0 ]]; then
@@ -327,6 +289,55 @@ function startup_source_d() {
         [[ $debug -ge 2 ]] && _startup_debug "- Filtering based on ${#keys[@]} keys ... done"
     fi
 
+    printf "%s\\n" "${source_d_files_tmp[@]}"
+}
+
+function _startup_find_all_files() {
+    find -L "$1" -executable -type f ! -name '*~' ! -name '#*' ! -name '*#' 2> /dev/null | LC_ALL=C sort
+}
+
+
+## ---------------------------------------------------------------------------
+## Public functions
+## ---------------------------------------------------------------------------
+function startup_source_d() {
+    local source_d_path=$1
+
+    if [[ $# -eq 0 ]]; then
+        _startup_error "startup_source_d: path not specified"
+        return 1
+    elif [[ ! -d "$source_d_path" ]]; then
+        if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
+            _startup_error "startup_source_d: no such path: $source_d_path"
+        elif [[ $STARTUP_ON_ERROR == warn ]]; then
+            _startup_warn "startup_source_d: no such path: $source_d_path"
+        fi
+        return 1
+    fi
+
+    local debug=$STARTUP_DEBUG
+    if [[ $debug = false ]]; then
+        debug=0
+    elif [[ $debug = true ]]; then
+        debug=1
+    fi
+    
+    local prefix=
+    local dryrun=false
+    if [[ -n "$STARTUP_DRYRUN" ]]; then
+        prefix="[DRYRUN] "
+        dryrun=true
+    fi
+
+    [[ $debug -ge 1 ]] && _startup_debug "Sourcing folder $source_d_path ..."
+
+    ## Find all files
+    # shellcheck disable=SC2207
+    local source_d_files=($(_startup_find_all_files "$source_d_path"))
+
+    ## Filter
+    # shellcheck disable=SC2207
+    source_d_files=($(_startup_filter "${source_d_files[@]}"))
     
     ## Source remaining files
     [[ $debug -ge 1 ]] && _startup_debug "- Sourcing ${#source_d_files[@]} files ..."
