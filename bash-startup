@@ -88,14 +88,10 @@
 ## ---------------------------------------------------------------------------
 ##  Local functions
 ## ---------------------------------------------------------------------------
-function _startup_msg_echo() {
-    >&2 echo "$*"
-}
-
 STARTUP_COLOR_SUPPORTED=false
 tput sgr0 2> /dev/null && STARTUP_COLOR_SUPPORTED=true
 
-function _startup_color_echo() {
+function _startup_color_msg() {
     local color=$1
     shift
     if $STARTUP_COLOR_SUPPORTED; then
@@ -107,7 +103,7 @@ function _startup_color_echo() {
     fi
 }
 
-function _startup_color_printf() {
+function _startup_color_msgf() {
     local color=$1
     shift
     local fmt=$1
@@ -123,22 +119,22 @@ function _startup_color_printf() {
     fi
 }
 
-function _startup_debug_echo() {
-    >&2 _startup_color_echo 8 "$(startup_duration)s: $*"  ## gray
+function _startup_debug() {
+    >&2 _startup_color_msg 8 "$(startup_duration)s: $*"  ## gray
 }
 
-function _startup_debug_printf() {
+function _startup_debugf() {
     local fmt=$1
     shift
-    >&2 _startup_color_printf 8 "$(startup_duration)s: $fmt" "$@" ## gray
+    >&2 _startup_color_msgf 8 "$(startup_duration)s: $fmt" "$@" ## gray
 }
 
-function _startup_warn_echo() {
-    >&2 _startup_color_echo 3 "WARNING: $*"  ## yellow
+function _startup_warn() {
+    >&2 _startup_color_msg 3 "WARNING: $*"  ## yellow
 }
 
-function _startup_error_echo() {
-    >&2 _startup_color_echo 1 "ERROR: $*"  ## red
+function _startup_error() {
+    >&2 _startup_color_msg 1 "ERROR: $*"  ## red
 }
 
 ## Display the help
@@ -199,7 +195,7 @@ function startup_filter_by_envvar() {
         ## Return the complementary of the above match
         printf "%s\\n" "$@" | grep --perl-regexp -v "$pattern"
     else
-#        _startup_warn_echo "Ignoring non-supported filter operator: $op"
+#        _startup_warn "Ignoring non-supported filter operator: $op"
         printf "%s\\n" "$@"
     fi
 }
@@ -217,13 +213,13 @@ function source_d() {
     local source_d_path=$1
 
     if [[ $# -eq 0 ]]; then
-        _startup_msg_echo "source_d: path not specified"
+        _startup_error "source_d: path not specified"
         return 1
     elif [[ ! -d "$source_d_path" ]]; then
         if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
-            _startup_error_echo "source_d: no such path: $source_d_path"
+            _startup_error "source_d: no such path: $source_d_path"
         elif [[ $STARTUP_ON_ERROR == warn ]]; then
-            _startup_warn_echo "source_d: no such path: $source_d_path"
+            _startup_warn "source_d: no such path: $source_d_path"
         fi
         return 1
     fi
@@ -246,7 +242,7 @@ function source_d() {
     local dropped=
     local value=
     
-    [[ $debug -ge 1 ]] && _startup_debug_echo "Sourcing folder $source_d_path ..."
+    [[ $debug -ge 1 ]] && _startup_debug "Sourcing folder $source_d_path ..."
 
     ## Find all files
     # shellcheck disable=SC2207
@@ -256,7 +252,7 @@ function source_d() {
     # shellcheck disable=SC2207
     local keys=($(startup_find_all_keys "${source_d_files[@]}"))
     if [[ ${#keys[@]} -gt 0 ]]; then
-        [[ $debug -ge 2 ]] && _startup_debug_echo "- Filtering based on ${#keys[@]} keys ..."
+        [[ $debug -ge 2 ]] && _startup_debug "- Filtering based on ${#keys[@]} keys ..."
 
         ## Pre-define keys
         local interactive=true
@@ -274,29 +270,29 @@ function source_d() {
                 # shellcheck disable=SC2207
                 dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${keys[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${keys_tmp[@]}" | LC_ALL=C sort)))
                 if [[ ${#dropped[@]} -ne 0 ]]; then
-                    _startup_debug_echo "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[*]}"
+                    _startup_debug "  + Dropped ${#dropped[@]} keys with empty values: ${dropped[*]}"
                 fi
             fi
             keys=("${keys_tmp[@]}")
         fi
         if [[ $debug -ge 2 ]]; then
-            _startup_debug_echo "  + Keys to filter on (n=${#keys[@]}): ${keys[*]}"
-            _startup_debug_echo "  + Predefined keys: interactive=$interactive"
+            _startup_debug "  + Keys to filter on (n=${#keys[@]}): ${keys[*]}"
+            _startup_debug "  + Predefined keys: interactive=$interactive"
         fi
 
         
         ## Filter files
         if [[ $debug -ge 2 ]]; then
-            _startup_debug_echo "  + Number of files before: ${#source_d_files[@]}"
+            _startup_debug "  + Number of files before: ${#source_d_files[@]}"
             local ii=
             for ii in "${!source_d_files[@]}"; do
-               _startup_debug_printf "    %2d. %s\\n" "$((ii + 1))" "${source_d_files[$ii]}"
+               _startup_debugf "    %2d. %s\\n" "$((ii + 1))" "${source_d_files[$ii]}"
             done
 	fi
 	
         local source_d_files_tmp=()
         for key in "${keys[@]}"; do
-            [[ $debug -ge 2 ]] && _startup_debug_echo "    - Number of files before: ${#source_d_files[@]}"
+            [[ $debug -ge 2 ]] && _startup_debug "    - Number of files before: ${#source_d_files[@]}"
             for op in EQUAL NOT_EQUAL; do
                 # shellcheck disable=SC2207
                 source_d_files_tmp=($(startup_filter_by_envvar $op "$key" "${source_d_files[@]}"))
@@ -305,35 +301,35 @@ function source_d() {
                     # shellcheck disable=SC2207
                     dropped=($(comm --nocheck-order -23 <(printf "%s\\n" "${source_d_files[@]}" | LC_ALL=C sort) <(printf "%s\\n" "${source_d_files_tmp[@]}" | LC_ALL=C sort)))
                     if [[ ${#dropped[@]} -eq 0 ]]; then
-                        _startup_debug_echo "    - $op filtering with '$key' (='$value'): dropped 0 files"
+                        _startup_debug "    - $op filtering with '$key' (='$value'): dropped 0 files"
                     else
-                        _startup_debug_echo "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files (\"${dropped[*]}\")"
+                        _startup_debug "    - $op filtering with '$key' (='$value'): dropped ${#dropped[@]} files (\"${dropped[*]}\")"
                     fi
                 fi
                 # shellcheck disable=SC2206
                 source_d_files=(${source_d_files_tmp[@]})
                 
-                [[ $debug -ge 2 ]] && _startup_debug_echo "    - Number of files after: ${#source_d_files[@]}"
+                [[ $debug -ge 2 ]] && _startup_debug "    - Number of files after: ${#source_d_files[@]}"
             done
         done
         
-        [[ $debug -ge 2 ]] && _startup_debug_echo "  + Number of files after: ${#source_d_files[@]}"
-        [[ $debug -ge 2 ]] && _startup_debug_echo "- Filtering based on ${#keys[@]} keys ... done"
+        [[ $debug -ge 2 ]] && _startup_debug "  + Number of files after: ${#source_d_files[@]}"
+        [[ $debug -ge 2 ]] && _startup_debug "- Filtering based on ${#keys[@]} keys ... done"
     fi
 
     
     ## Source remaining files
-    [[ $debug -ge 1 ]] && _startup_debug_echo "- Sourcing ${#source_d_files[@]} files ..."
+    [[ $debug -ge 1 ]] && _startup_debug "- Sourcing ${#source_d_files[@]} files ..."
     local ii=
     for ii in "${!source_d_files[@]}"; do
-        ( [[ $debug -ge 1 ]] || $dryrun ) && _startup_debug_printf "$prefix  %2d. %s\\n" "$((ii + 1))" "${source_d_files[$ii]}"
+        ( [[ $debug -ge 1 ]] || $dryrun ) && _startup_debugf "$prefix  %2d. %s\\n" "$((ii + 1))" "${source_d_files[$ii]}"
         $dryrun && continue
         # shellcheck disable=SC1090
         source "${source_d_files[$ii]}"
     done
-    [[ $debug -ge 1 ]] && _startup_debug_echo "- Sourcing ${#source_d_files[@]} files ...done"
+    [[ $debug -ge 1 ]] && _startup_debug "- Sourcing ${#source_d_files[@]} files ...done"
 
-    [[ $debug -ge 1 ]] && _startup_debug_echo "Sourcing folder $source_d_path ... done"
+    [[ $debug -ge 1 ]] && _startup_debug "Sourcing folder $source_d_path ... done"
 
     return 0
 } ## source_d()
@@ -378,14 +374,14 @@ function bash_startup() {
     done
 
     if [[ $debug -ge 2 ]]; then
-        _startup_debug_echo "bash_startup() ..."
-        _startup_debug_echo "BASH_SOURCE (n=${#BASH_SOURCE[@]}): ${BASH_SOURCE[*]}"
-        _startup_debug_echo "Command-line arguments: $cmdargs"
-        _startup_debug_echo "STARTUP_KEEP_EMPTY_KEYS: ${STARTUP_KEEP_EMPTY_KEYS:-false}"
-        _startup_debug_echo "STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
-        _startup_debug_echo "STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
-        _startup_debug_echo "STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
-        _startup_debug_echo "action: $action"
+        _startup_debug "bash_startup() ..."
+        _startup_debug "BASH_SOURCE (n=${#BASH_SOURCE[@]}): ${BASH_SOURCE[*]}"
+        _startup_debug "Command-line arguments: $cmdargs"
+        _startup_debug "STARTUP_KEEP_EMPTY_KEYS: ${STARTUP_KEEP_EMPTY_KEYS:-false}"
+        _startup_debug "STARTUP_DEBUG: ${STARTUP_DEBUG:-false}"
+        _startup_debug "STARTUP_DRYRUN: ${STARTUP_DRYRUN:-false}"
+        _startup_debug "STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
+        _startup_debug "action: $action"
     fi
     
     if [[ $action == help ]]; then
@@ -395,7 +391,7 @@ function bash_startup() {
         startup_version "${BASH_SOURCE[0]}"
         return 0
     else
-        [[ $debug -ge 2 ]] && _startup_debug_echo "Processing ${#dirs[@]} folders: ${dirs[*]}"
+        [[ $debug -ge 2 ]] && _startup_debug "Processing ${#dirs[@]} folders: ${dirs[*]}"
         for dir in "${dirs[@]}"; do
            source_d "$dir"
         done
@@ -407,12 +403,12 @@ function bash_startup() {
     STARTUP_ON_ERROR=$org_onerror
     STARTUP_KEEP_EMPTY_KEYS=$org_emptykeys
     
-    [[ $debug -ge 2 ]] && _startup_debug_echo "bash_startup() ... done"
+    [[ $debug -ge 2 ]] && _startup_debug "bash_startup() ... done"
 }
 
 ## Make sure script is source:ed
 if [[ $0 == "${BASH_SOURCE[0]}" ]]; then
-    _startup_error_echo "The $0 script should not be called directly, but rather be source:d (or .:ed), i.e. either as 'source $0' or '. $0'."
+    _startup_error "The $0 script should not be called directly, but rather be source:d (or .:ed), i.e. either as 'source $0' or '. $0'."
     exit 1
 fi
 
