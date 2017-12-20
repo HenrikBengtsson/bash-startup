@@ -12,6 +12,8 @@
 ### . /path/to/bash-startup; startup_source_d folder folder2 ...
 ###
 ### Options:
+###  --reset       resets timer when calling startup()
+###
 ###  --help        Display this help
 ###  --version     Display version
 ###
@@ -148,12 +150,22 @@ function _startup_version() {
 }
 
 ## Keeps track of processing times
-_STARTUP_START_TIME=$(($(date +%s%N)/1000000))
+
+function _startup_duration_reset() {
+    _STARTUP_START_TIME=$(($(date +%s%N)/1000000))
+}
+
 function _startup_duration() {
     local d=$(($(($(date +%s%N)/1000000)) - _STARTUP_START_TIME))
     d=$(echo 000$d | sed -E 's/([0-9]{3})$/.\1/' | sed -E 's/^0*([0-9])/\1/')
     echo "$d"
 }
+
+## If not already defined, reset timer
+if [[ ! -v _STARTUP_START_TIME ]]; then
+    _STARTUP_START_TIME=
+    _startup_duration_reset
+fi
 
 function _startup_find_all_keys() {
     ## Identify all unique <key>:s in string with <key>=<value>, which are
@@ -342,6 +354,7 @@ function startup() {
 
     local cmdargs=$*
     local action=
+    local reset=false
     local debug=0
     local dirs=()
    
@@ -357,6 +370,8 @@ function startup() {
         elif [[ "$1" == "--debug" ]]; then
             STARTUP_DEBUG=2
             debug=2
+        elif [[ "$1" == "--reset" ]]; then
+            reset=true
         elif [[ "$1" == "--dryrun" ]]; then
             STARTUP_DRYRUN=true
         elif [[ $1 == "--emptykeys" ]]; then
@@ -371,6 +386,9 @@ function startup() {
         shift
     done
 
+    ## Reset timer?
+    $reset && _startup_duration_reset
+    
     if [[ $debug -ge 2 ]]; then
         _startup_debug "startup() ..."
         _startup_debug "BASH_SOURCE (n=${#BASH_SOURCE[@]}): ${BASH_SOURCE[*]}"
@@ -431,6 +449,8 @@ if [[ $# -gt 0 ]]; then
     startup "$@"
     return $?
 fi
+
+_startup_duration_reset
 
 return 0
 

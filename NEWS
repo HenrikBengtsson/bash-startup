@@ -11,6 +11,8 @@ NEW FEATURES:
  
  o Now all ("public") functions are prefixed with 'startup_' and all
    "private" functions are prefixed with '_startup_'.
+
+ o startup() gained option --reset for resetting the timer.
   
 SOFTWARE QUALITY:
 

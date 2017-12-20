@@ -21,6 +21,8 @@ USAGE:
 . /path/to/bash-startup; startup_source_d folder folder2 ...
 
 Options:
+ --reset       resets timer when calling startup()
+
  --help        Display this help
  --version     Display version
 
