@@ -213,6 +213,7 @@ function _startup_filter_by_key() {
 function _startup_filter() {
     local dropped=
     local value=
+    local source_d_files=("$@")
 
     local debug=$STARTUP_DEBUG
     if [[ $debug = false ]]; then
@@ -289,7 +290,7 @@ function _startup_filter() {
         [[ $debug -ge 2 ]] && _startup_debug "- Filtering based on ${#keys[@]} keys ... done"
     fi
 
-    printf "%s\\n" "${source_d_files_tmp[@]}"
+    printf "%s\\n" "${source_d_files[@]}"
 }
 
 function _startup_find_all_files() {
@@ -356,6 +357,62 @@ function startup_source_d() {
 } ## startup_source_d()
 
 
+function startup_source() {
+    local source_file=$1
+
+    if [[ $# -eq 0 ]]; then
+        _startup_error "startup_source: file not specified"
+        return 1
+    elif [[ ! -f "$source_file" ]]; then
+        if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
+            _startup_error "startup_source: no such file: $source_file"
+        elif [[ $STARTUP_ON_ERROR == warn ]]; then
+            _startup_warn "startup_source: no such file: $source_file"
+        fi
+        return 1
+    elif [[ ! -x "$source_file" ]]; then
+        if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
+            _startup_error "startup_source: file is non-executable: $source_file"
+        elif [[ $STARTUP_ON_ERROR == warn ]]; then
+            _startup_warn "startup_source: file non-executable: $source_file"
+        fi
+        return 1
+    fi
+
+    local debug=$STARTUP_DEBUG
+    if [[ $debug = false ]]; then
+        debug=0
+    elif [[ $debug = true ]]; then
+        debug=1
+    fi
+    
+    local prefix=
+    local dryrun=false
+    if [[ -n "$STARTUP_DRYRUN" ]]; then
+        prefix="[DRYRUN] "
+        dryrun=true
+    fi
+
+    [[ $debug -ge 1 ]] && _startup_debug "Sourcing file $source_file ... "
+
+    ## Filter
+    # shellcheck disable=SC2207
+    source_file="$(_startup_filter "$source_file")"
+
+    if [[ -z "$source_file" ]]; then
+       [[ $debug -ge 1 ]] && _startup_debug "$prefix - skipped (due to filters)"
+    else
+        ( [[ $debug -ge 1 ]] || $dryrun ) && _startup_debug "$prefix - sourced"
+        # shellcheck disable=SC1090
+        $dryrun || source "$source_file"
+    fi
+
+    [[ $debug -ge 1 ]] && _startup_debug "Sourcing file $source_file ... done"
+
+    return 0
+} ## startup_source()
+
+
 function startup() {
     ## Record startup env vars
     local org_debug=$STARTUP_DEBUG
@@ -420,7 +477,11 @@ function startup() {
     else
         [[ $debug -ge 2 ]] && _startup_debug "Processing ${#items[@]} files or folders: ${items[*]}"
         for item in "${items[@]}"; do
-           startup_source_d "$item"
+	   if [[ -f "$item" ]]; then 
+               startup_source "$item"
+	   else
+               startup_source_d "$item"
+	   fi
         done
     fi
 

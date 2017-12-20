@@ -5,6 +5,8 @@ Version: 0.2.2-9000 [2017-12-19]
 
 NEW FEATURES:
 
+ o Add startup_source().
+ 
  o Renamed bash_startup() to startup().
  
  o Renamed source_d() to startup_source_d().
