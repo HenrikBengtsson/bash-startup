@@ -88,13 +88,13 @@
 ## ---------------------------------------------------------------------------
 ##  Local functions
 ## ---------------------------------------------------------------------------
-STARTUP_COLOR_SUPPORTED=false
-tput sgr0 2> /dev/null && STARTUP_COLOR_SUPPORTED=true
+_STARTUP_COLOR_SUPPORTED=false
+tput sgr0 2> /dev/null && _STARTUP_COLOR_SUPPORTED=true
 
 function _startup_color_msg() {
     local color=$1
     shift
-    if $STARTUP_COLOR_SUPPORTED; then
+    if $_STARTUP_COLOR_SUPPORTED; then
         tput setaf "$color"
         echo "$*"
         tput sgr0
@@ -108,7 +108,7 @@ function _startup_color_msgf() {
     shift
     local fmt=$1
     shift
-    if $STARTUP_COLOR_SUPPORTED; then
+    if $_STARTUP_COLOR_SUPPORTED; then
         tput setaf "$color"
 	# shellcheck disable=SC2059
         printf "$fmt" "$@"
@@ -148,9 +148,9 @@ function _startup_version() {
 }
 
 ## Keeps track of processing times
-STARTUP_START_TIME=$(($(date +%s%N)/1000000))
+_STARTUP_START_TIME=$(($(date +%s%N)/1000000))
 function _startup_duration() {
-    local d=$(($(($(date +%s%N)/1000000)) - STARTUP_START_TIME))
+    local d=$(($(($(date +%s%N)/1000000)) - _STARTUP_START_TIME))
     d=$(echo 000$d | sed -E 's/([0-9]{3})$/.\1/' | sed -E 's/^0*([0-9])/\1/')
     echo "$d"
 }
