@@ -163,7 +163,8 @@ function _startup_duration() {
 }
 
 ## If not already defined, reset timer
-if [[ ! -v _STARTUP_START_TIME ]]; then
+## NB: We cannot use -v, because that requires bash (>= 4.2)
+if [[ -z "$_STARTUP_START_TIME" ]]; then
     _STARTUP_START_TIME=
     _startup_duration_reset
 fi
