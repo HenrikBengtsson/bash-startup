@@ -1,9 +1,11 @@
 bash-startup
 ============
 
-Version: 0.2.2-9000 [2017-12-16]
+Version: 0.2.2-9000 [2017-12-19]
 
- o ...
+NEW FEATURES:
+
+ o Now all "private" functions are prefixed with '_startup_'.
  
 SOFTWARE QUALITY:
 
