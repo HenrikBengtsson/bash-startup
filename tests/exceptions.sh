@@ -13,16 +13,16 @@ echo "Results: $res"
 [[ $value -eq 0 ]] && exit 1
 
 
-echo "- Error: source_d <no-args>"
-res=$( { source_d ; } 2>&1 )
+echo "- Error: startup_source_d <no-args>"
+res=$( { startup_source_d ; } 2>&1 )
 value=$?
 echo "Exit code: $value"
 echo "Results: $res"
 [[ $value -eq 0 ]] && exit 1
 
 
-echo "- Error: source_d non-existing-folder"
-res=$( { source_d non-existing-folder; } 2>&1 )
+echo "- Error: startup_source_d non-existing-folder"
+res=$( { startup_source_d non-existing-folder; } 2>&1 )
 value=$?
 echo "Exit code: $value"
 echo "Results: $res"

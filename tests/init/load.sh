@@ -52,9 +52,13 @@ function expect() {
     
     if [[ $test = equal ]]; then
 	if [[ ${#args1[@]} -ne ${#args2[@]} ]]; then
-	    error "$prefix: different lengths (${#args1[@]} != ${#args2[@]})"
+	    >&2 echo "ERROR: $*" "$prefix: different lengths (${#args1[@]} != ${#args2[@]})"
+            >&2 diff -u <( printf "%s\\n" "${args1[@]}" ) <( printf "%s\\n" "${args2[@]}" )
+	    exit 1
 	elif [[ ${args1[*]} != "${args2[*]}" ]]; then
-	    error "$prefix: strings differ"
+	    >&2 echo "ERROR: $*" "$prefix: strings differ"
+            >&2 diff -u <( printf "%s\\n" "${args1[@]}" ) <( printf "%s\\n" "${args2[@]}" )
+	    exit 1
 	fi
     elif [[ $test = empty ]]; then
 	if [[ ${#args1[@]} -ne 0 ]]; then

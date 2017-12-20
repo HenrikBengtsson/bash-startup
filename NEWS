@@ -1,6 +1,29 @@
 bash-startup
 ============
 
+Version: 0.3.0 [2017-12-19]
+
+NEW FEATURES:
+
+ o Add startup_source().
+ 
+ o Renamed bash_startup() to startup().
+ 
+ o Renamed source_d() to startup_source_d().
+ 
+ o Now all ("public") functions are prefixed with 'startup_' and all
+   "private" functions are prefixed with '_startup_'.
+
+ o startup() gained option --reset for resetting the timer.
+
+ o startup() gained option --non-x for sourcing also script without the
+   executable flag set.
+
+SOFTWARE QUALITY:
+
+ o TESTS: More unit tests.
+
+
 Version: 0.2.2 [2017-12-15]
 
 BUG FIXES:
@@ -17,7 +40,7 @@ BUG FIXES:
 
 SOFTWARE QUALITY:
 
- o Added more unit tests.
+ o TESTS: More unit tests.
 
 
 Version: 0.2.1 [2017-12-12]
