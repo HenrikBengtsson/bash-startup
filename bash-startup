@@ -143,7 +143,7 @@ function _startup_error() {
 function _startup_help() {
     local res=
     res=$(grep -E "^###([ ].*|)$" "$1" | cut -b 5-)
-    printf '%s\\n' "${res[@]}"
+    printf "%s\\n" "${res[@]}"
 }
 
 function _startup_version() {
