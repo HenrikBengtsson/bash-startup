@@ -11,14 +11,14 @@
 (B[mBash Startup Utility Functions
 
 This script defines utility functions for the Bash startup sequence,
-specificially, source_d() sources all _executable_ scripts in a set
+specificially, startup_source_d() sources all _executable_ scripts in a set
 of folders (recursively) conditionally on pathname-specific tags.
 This script is preferrably sourced from ~/.bashrc or similar.
 
 USAGE:
 . /path/to/bash-startup [options] folder folder2 ...
-. /path/to/bash-startup; bash_startup [options] folder folder2 ...
-. /path/to/bash-startup; source_d folder folder2 ...
+. /path/to/bash-startup; startup [options] folder folder2 ...
+. /path/to/bash-startup; startup_source_d folder folder2 ...
 
 Options:
  --help        Display this help
@@ -37,17 +37,17 @@ The easiest way is to source the bash-startup script with a set of folders:
   STARTUP_DEBUG=true . /path/to/bash-startup ~/.bashrc.d
 
 The bash-startup script can also be used to import a set of functions
-(bash_startup and source_d) and then call those afterward, e.g.
+(startup and startup_source_d) and then call those afterward, e.g.
 
   . /path/to/bash-startup
-  bash_startup /etc/bashrc
-  bash_startup --debug ~/.bashrc.d
+  startup /etc/bashrc
+  startup --debug ~/.bashrc.d
 
 or
 
   . /path/to/bash-startup
-  source_d /etc/bashrc
-  STARTUP_DEBUG=true source_d ~/.bashrc.d
+  startup_source_d /etc/bashrc
+  STARTUP_DEBUG=true startup_source_d ~/.bashrc.d
 
 FILE AND DIRECTORY NAME FILTERS:
 It is only files that are _executable_ that are considered; all other
@@ -83,7 +83,7 @@ will only be used in an interactive Bash session, if the USER is neither
 DEBUGGING AND TESTING:
 To debug what files are sourced and how long each of them takes set
 STARTUP_DEBUG=1.  To perform a dry run set STARTUP_DRYRUN=1.
-If calling bash_startup(), these may be setup (temporarily) by using
+If calling startup(), these may be setup (temporarily) by using
 options --debug and --dryrun, respectively.
 
 Version: 0.2.2-9000
