@@ -429,10 +429,11 @@ function startup() {
     local org_alsononexecutable=$STARTUP_ALSO_NON_EXECUTABLE
 
     local cmdargs=$*
-    local action=
     local reset=false
     local debug=0
     local items=()
+    local action=
+    [[ $# -eq 0 ]] && action=help
    
     # Parse command-line options
     while [[ $# -gt 0 ]]; do
@@ -477,7 +478,7 @@ function startup() {
         _startup_debug "STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
         _startup_debug "action: $action"
     fi
-    
+
     if [[ $action == help ]]; then
         _startup_help "${BASH_SOURCE[0]}"
         return 0

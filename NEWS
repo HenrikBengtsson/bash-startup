@@ -1,9 +1,11 @@
 bash-startup
 ============
 
-Version: 0.3.0-9000 [2017-12-19]
+Version: 0.3.0-9000 [2017-12-21]
 
- o ...
+NEW FEATURES:
+
+  o Calling 'startup' without arguments is now the same as 'startup --help'.
 
 
 Version: 0.3.0 [2017-12-19]
