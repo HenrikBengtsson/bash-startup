@@ -224,6 +224,11 @@ function _startup_filter() {
     elif [[ $debug = true ]]; then
         debug=1
     fi
+
+    ## Drop directories and files prefixed with double periods, e.g. '..name'
+    # shellcheck disable=SC2207
+    source_d_files=($(printf "%s\\n" "${source_d_files[@]}" | grep -vE "(^|/)[.][.]"))
+    
     
     # shellcheck disable=SC2207
     local keys=($(_startup_find_all_keys "${source_d_files[@]}"))
