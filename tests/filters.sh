@@ -47,11 +47,34 @@ declare -a files=(
 
     ## Unaffected
     "a/b/c"
+    
+    ## Always dropped
+    "..a/b/c"
+    "a/..b/c"
+    "a/b/..c"
 )
 
-echo "Files (n=${#files}):"
+echo "Files (n=${#files[@]}):"
 printf " * '%s'\\n" "${files[@]}"
 expect "${files[@]}" %nonempty%
+
+## Assert that directories and files prefixed with double periods
+## are dropped
+unset a
+unset b
+unset c
+# shellcheck disable=SC2207
+files2=($(_startup_filter "${files[@]}"))
+echo "Files filtered (n=${#files2[@]}):"
+printf " * '%s'\\n" "${files2[@]}"
+expect "${files2[@]}" %nonempty%
+truth=("${files[@]}")
+unset truth[${#truth[@]}-1]
+unset truth[${#truth[@]}-1]
+unset truth[${#truth[@]}-1]
+expect "${files2[@]}" %equal% "${truth[@]}"
+echo "OK"
+
 
 printf "Filter (nonexisting): "
 # shellcheck disable=SC2207
@@ -61,7 +84,7 @@ expect "${files2[@]}" %equal% "${files[@]}"
 echo "OK"
 
 
-echo "_startup_find_all_keys(n=${#files}):"
+echo "_startup_find_all_keys(n=${#files[@]}):"
 # shellcheck disable=SC2207
 keys=($(_startup_find_all_keys "${files[@]}"))
 printf " * '%s'\\n" "${keys[@]}"
