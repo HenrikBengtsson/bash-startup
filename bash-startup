@@ -83,7 +83,7 @@
 ### If calling startup(), these may be setup (temporarily) by using
 ### options --debug and --dryrun, respectively.
 ###
-### Version: 0.3.0
+### Version: 0.4.0
 ### Copyright: Henrik Bengtsson (2017)
 ### License: GPL (>= 3.0)
 ### Source: https://github.com/HenrikBengtsson/bash-startup
@@ -224,6 +224,11 @@ function _startup_filter() {
     elif [[ $debug = true ]]; then
         debug=1
     fi
+
+    ## Drop directories and files prefixed with double periods, e.g. '..name'
+    # shellcheck disable=SC2207
+    source_d_files=($(printf "%s\\n" "${source_d_files[@]}" | grep -vE "(^|/)[.][.]"))
+    
     
     # shellcheck disable=SC2207
     local keys=($(_startup_find_all_keys "${source_d_files[@]}"))
@@ -429,10 +434,11 @@ function startup() {
     local org_alsononexecutable=$STARTUP_ALSO_NON_EXECUTABLE
 
     local cmdargs=$*
-    local action=
     local reset=false
     local debug=0
     local items=()
+    local action=
+    [[ $# -eq 0 ]] && action=help
    
     # Parse command-line options
     while [[ $# -gt 0 ]]; do
@@ -477,7 +483,7 @@ function startup() {
         _startup_debug "STARTUP_ON_ERROR: ${STARTUP_ON_ERROR:-error}"
         _startup_debug "action: $action"
     fi
-    
+
     if [[ $action == help ]]; then
         _startup_help "${BASH_SOURCE[0]}"
         return 0

@@ -1,6 +1,16 @@
 bash-startup
 ============
 
+Version: 0.4.0 [2018-01-08]
+
+NEW FEATURES:
+
+  o Calling 'startup' without arguments is now the same as 'startup --help'.
+
+  o Directories and files prefixed with double periods are now always ignored,
+    e.g. /path/..to/script.sh and /path/to/..script.sh.
+    
+
 Version: 0.3.0 [2017-12-19]
 
 NEW FEATURES:
