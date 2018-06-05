@@ -1,10 +1,13 @@
 bash-startup
 ============
 
-Version: 0.4.0-9000 [2018-01-08]
+Version: 0.4.0-9000 [2018-06-04]
 
- o ...
- 
+NEW FEATURES:
+
+ o Option '--' ("end of command options") will cause any following options
+   to be ignored unless positional.
+
 
 Version: 0.4.0 [2018-01-08]
 
