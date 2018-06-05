@@ -467,6 +467,8 @@ function startup() {
             $ignore_options || STARTUP_ON_ERROR=warn
         elif [[ $1 == "--" ]]; then
             ignore_options=true
+        elif [[ $1 == "---" ]]; then
+            break
         else
             items+=("$1")
         fi
