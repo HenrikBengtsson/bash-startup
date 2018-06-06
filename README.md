@@ -90,8 +90,8 @@ STARTUP_DEBUG=1.  To perform a dry run set STARTUP_DRYRUN=1.
 If calling startup(), these may be setup (temporarily) by using
 options --debug and --dryrun, respectively.
 
-Version: 0.4.0
-Copyright: Henrik Bengtsson (2017)
+Version: 0.5.0
+Copyright: Henrik Bengtsson (2017-2018)
 License: GPL (>= 3.0)
 Source: https://github.com/HenrikBengtsson/bash-startup
 ```

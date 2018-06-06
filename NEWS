@@ -1,80 +1,91 @@
 bash-startup
 ============
 
+Version: 0.5.0 [2018-06-06]
+
+NEW FEATURES:
+
+ * Add POSIX-style option '--' ("end of command options") will cause all
+   following options to be ignored _unless_ positional.
+
+ * Add ption '---' will cause all following options to be ignored _including_
+   positional ones.
+
+
 Version: 0.4.0 [2018-01-08]
 
 NEW FEATURES:
 
-  o Calling 'startup' without arguments is now the same as 'startup --help'.
+ * Calling 'startup' without arguments is now the same as 'startup --help'.
 
-  o Directories and files prefixed with double periods are now always ignored,
-    e.g. /path/..to/script.sh and /path/to/..script.sh.
+ * Directories and files prefixed with double periods are now always ignored,
+   e.g. /path/..to/script.sh and /path/to/..script.sh.
     
 
 Version: 0.3.0 [2017-12-19]
 
 NEW FEATURES:
 
- o Add startup_source().
+ * Add startup_source().
  
- o Renamed bash_startup() to startup().
+ * Renamed bash_startup() to startup().
  
- o Renamed source_d() to startup_source_d().
+ * Renamed source_d() to startup_source_d().
  
- o Now all ("public") functions are prefixed with 'startup_' and all
+ * Now all ("public") functions are prefixed with 'startup_' and all
    "private" functions are prefixed with '_startup_'.
 
- o startup() gained option --reset for resetting the timer.
+ * startup() gained option --reset for resetting the timer.
 
- o startup() gained option --non-x for sourcing also script without the
+ * startup() gained option --non-x for sourcing also script without the
    executable flag set.
 
 SOFTWARE QUALITY:
 
- o TESTS: More unit tests.
+ * TESTS: More unit tests.
 
 
 Version: 0.2.2 [2017-12-15]
 
 BUG FIXES:
 
- o startup_find_all_keys() would incorrectly identify filename extensions
+ * startup_find_all_keys() would incorrectly identify filename extensions
    as keys.
    
- o Output functions produced 'tput: No value for $TERM and no -T specified'
+ * Output functions produced 'tput: No value for $TERM and no -T specified'
    if TERM was not set.  Now 'tput' (for colored output) is only used if
    supported.
  
- o key=value pairs did not acknowledge periods (.), e.g. 'abc.def=123' would
+ * key=value pairs did not acknowledge periods (.), e.g. 'abc.def=123' would
    be parsed as key='abc.def' not as 'def'.
 
 SOFTWARE QUALITY:
 
- o TESTS: More unit tests.
+ * TESTS: More unit tests.
 
 
 Version: 0.2.1 [2017-12-12]
  
 SOFTWARE QUALITY:
 
- o Added shellcheck tests ('make check'), which also run on Travis CI.
+ * Added shellcheck tests ('make check'), which also run on Travis CI.
  
 
 Version: 0.2.0 [2017-12-11]
 
 NEW FEATURES:
 
- o source_d() now supports key=value and key!=value filtering where 'key'
+ * source_d() now supports key=value and key!=value filtering where 'key'
    is any environment variable or one of the predefined built-in keys,
    i.e. 'interactive'.  Note that it will only filter on the key if its
    value is non-empty.
 
 SOFTWARE QUALITY:
 
- o Added unit tests ('make test'), which run on Travis CI.
+ * Added unit tests ('make test'), which run on Travis CI.
 
 
 Version: 0.1.0 [2017-12-10]
 
- o Created bash-startup script with functions generalized from a set of
+ * Created bash-startup script with functions generalized from a set of
    in-house functions created over a few years.

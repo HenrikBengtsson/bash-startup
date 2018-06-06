@@ -83,8 +83,8 @@
 ### If calling startup(), these may be setup (temporarily) by using
 ### options --debug and --dryrun, respectively.
 ###
-### Version: 0.4.0
-### Copyright: Henrik Bengtsson (2017)
+### Version: 0.5.0
+### Copyright: Henrik Bengtsson (2017-2018)
 ### License: GPL (>= 3.0)
 ### Source: https://github.com/HenrikBengtsson/bash-startup
 
@@ -319,9 +319,9 @@ function startup_source_d() {
         return 1
     elif [[ ! -d "$source_d_path" ]]; then
         if [[ ${STARTUP_ON_ERROR:-error} == error ]]; then
-            _startup_error "startup_source_d: no such path: $source_d_path"
+            _startup_error "startup_source_d: no such path: $source_d_path (working directory is $(pwd))"
         elif [[ $STARTUP_ON_ERROR == warn ]]; then
-            _startup_warn "startup_source_d: no such path: $source_d_path"
+            _startup_warn "startup_source_d: no such path: $source_d_path (working directory is $(pwd))"
         fi
         return 1
     fi
@@ -439,31 +439,36 @@ function startup() {
     local items=()
     local action=
     [[ $# -eq 0 ]] && action=help
-   
+    local ignore_options=false
+    
     # Parse command-line options
     while [[ $# -gt 0 ]]; do
         if [[ "$1" == "--help" ]]; then
-            action=help
+	    $ignore_options || action=help
         elif [[ "$1" == "--version" ]]; then
-            action=version
+            $ignore_options || action=version
         elif [[ "$1" == "--verbose" ]]; then
-            STARTUP_DEBUG=1
-            debug=1
+            $ignore_options || STARTUP_DEBUG=1
+            $ignore_options || debug=1
         elif [[ "$1" == "--debug" ]]; then
-            STARTUP_DEBUG=2
-            debug=2
+            $ignore_options || STARTUP_DEBUG=2
+            $ignore_options || debug=2
         elif [[ "$1" == "--non-x" ]]; then
-            STARTUP_ALSO_NON_EXECUTABLE=true
+            $ignore_options || STARTUP_ALSO_NON_EXECUTABLE=true
         elif [[ "$1" == "--reset" ]]; then
-            reset=true
+            $ignore_options || reset=true
         elif [[ "$1" == "--dryrun" ]]; then
-            STARTUP_DRYRUN=true
+            $ignore_options || STARTUP_DRYRUN=true
         elif [[ $1 == "--emptykeys" ]]; then
-            STARTUP_KEEP_EMPTY_KEYS=true
+            $ignore_options || STARTUP_KEEP_EMPTY_KEYS=true
         elif [[ $1 == "--strict" ]]; then
-            STARTUP_ON_ERROR=error
+            $ignore_options || STARTUP_ON_ERROR=error
         elif [[ $1 == "--warn" ]]; then
-            STARTUP_ON_ERROR=warn
+            $ignore_options || STARTUP_ON_ERROR=warn
+        elif [[ $1 == "--" ]]; then
+            ignore_options=true
+        elif [[ $1 == "---" ]]; then
+            break
         else
             items+=("$1")
         fi
